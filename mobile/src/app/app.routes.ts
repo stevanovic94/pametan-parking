@@ -16,4 +16,10 @@ export const routes: Routes = [
     redirectTo: 'home',
     pathMatch: 'full',
   },
+
+  //automatski dodata ruta nakon kreiranja login page
+  {
+    path: 'login',
+    loadComponent: () => import('./features/authentication/login/login.page').then( m => m.LoginPage)
+  },
 ];
