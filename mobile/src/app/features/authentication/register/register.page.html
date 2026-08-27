@@ -11,34 +11,95 @@
     </ion-toolbar>
   </ion-header>
 
+  <form
+  [formGroup]="registerForm"
+  (ngSubmit)="onSubmit()">
+
   <ion-input
     label="Ime"
     type="text"
-    placeholder="Unesite ime">
+    placeholder="Unesite ime"
+    formControlName="firstName"
+    [errorText]="
+      registerForm.controls.firstName.hasError('required')
+        ? 'Ime je obavezno.'
+        : registerForm.controls.firstName.hasError('minlength')
+          ? 'Ime mora imati najmanje 2 karaktera.'
+          : registerForm.controls.firstName.hasError('maxlength')
+            ? 'Ime može imati najviše 50 karaktera.'
+            : ''
+    ">
   </ion-input>
+
   <ion-input
     label="Prezime"
     type="text"
-    placeholder="Unesite prezime">
+    placeholder="Unesite prezime"
+    formControlName="lastName"
+    [errorText]="
+      registerForm.controls.lastName.hasError('required')
+        ? 'Prezime je obavezno.'
+        : registerForm.controls.lastName.hasError('minlength')
+          ? 'Prezime mora imati najmanje 2 karaktera.'
+          : registerForm.controls.lastName.hasError('maxlength')
+            ? 'Prezime može imati najviše 50 karaktera.'
+            : ''
+    ">
   </ion-input>
+
   <ion-input
     label="Email"
     type="email"
-    placeholder="Unesite email adresu">
+    placeholder="Unesite email adresu"
+    formControlName="email"
+    [errorText]="
+      registerForm.controls.email.hasError('required')
+        ? 'Email je obavezan.'
+        : registerForm.controls.email.hasError('email')
+          ? 'Unesite ispravnu email adresu.'
+          : ''
+    ">
   </ion-input>
+
   <ion-input
     label="Lozinka"
     type="password"
-    placeholder="Unesite lozinku">
+    placeholder="Unesite lozinku"
+    formControlName="password"
+    [errorText]="
+      registerForm.controls.password.hasError('required')
+        ? 'Lozinka je obavezna.'
+        : registerForm.controls.password.hasError('minlength')
+          ? 'Lozinka mora imati najmanje 8 karaktera.'
+          : ''
+    ">
   </ion-input>
+
   <ion-input
     label="Potvrda lozinke"
     type="password"
-    placeholder="Potvrdite lozinku">
+    placeholder="Ponovite lozinku"
+    formControlName="confirmPassword"
+    [errorText]="
+      registerForm.controls.confirmPassword.hasError('required')
+        ? 'Potvrda lozinke je obavezna.'
+        : registerForm.hasError('passwordsMismatch')
+          ? 'Lozinke se ne poklapaju.'
+          : ''
+    ">
   </ion-input>
-  <ion-button>Registrujte se</ion-button>
-  <p>
+
+  <ion-button
+    type="submit"
+    [disabled]="registerForm.invalid">
+    Registruj se
+  </ion-button>
+
+</form>
+
+<p>
   Već imate nalog?
   <a routerLink="/login">Prijavite se</a>
-  </p>
+</p>
+
 </ion-content>
