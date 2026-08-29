@@ -15,11 +15,13 @@ enum Role{
   ADMIN
 }
 
+// @id - prim kljuc, uuid() - generise kompleksan ID
+// @unique - dva korisnika ne mogu imati isti email
 model User{
-  id           String   @id @default(uuid())    // @id - prim kljuc, uuid() - generise kompleksan ID
+  id           String   @id @default(uuid())    
   firstName    String   @db.VarChar(50)
   lastName     String   @db.VarChar(50)
-  email        String   @unique @db.VarChar(255)  // @unique - dva korisnika ne mogu imati isti email
+  email        String   @unique @db.VarChar(255)
   passwordHash String   @db.VarChar(255)
   role         Role     @default(USER)
   isActive     Boolean  @default(true)
