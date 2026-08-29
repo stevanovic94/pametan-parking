@@ -1,0 +1,17 @@
+# Node dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Angular cache
+.angular/
+
+# Test coverage
+coverage/
+
+# Environment promenljive
+.env
+
+# Log fajlovi
+*.log
