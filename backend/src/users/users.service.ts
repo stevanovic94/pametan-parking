@@ -22,4 +22,38 @@ export class UsersService {
       },
     });
   }
+
+  findByEmail(email: string) {
+    return this.prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+  }
+
+  create(
+    firstName: string,
+    lastName: string,
+    email: string,
+    passwordHash: string,
+  ) {
+    return this.prisma.user.create({
+      data: {
+        firstName,
+        lastName,
+        email,
+        passwordHash,
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
 }

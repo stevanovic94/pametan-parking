@@ -9,12 +9,16 @@ describe('UsersService', () => {
 
   const prismaMock = {
     user: {
-      findMany: vi.fn(),
-    },
+    findMany: vi.fn(),
+    findUnique: vi.fn(),
+    create: vi.fn(),
+  },
   };
 
   beforeEach(async () => {
     prismaMock.user.findMany.mockReset();
+    prismaMock.user.findUnique.mockReset();
+    prismaMock.user.create.mockReset();
 
     const moduleRef = await Test.createTestingModule({
       providers: [
