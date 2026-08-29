@@ -15,3 +15,16 @@ coverage/
 
 # Log fajlovi
 *.log
+/src/generated/prisma
+
+# Prisma generisani klijent
+backend/src/generated/prisma/
+
+# TypeScript build info fajlovi
+*.tsbuildinfo
+
+# AI agent alati
+.agents/
+.claude/
+.windsurf/
+skills-lock.json
