@@ -3,12 +3,9 @@ import { AuthService } from './auth.service.js';
 import { RegisterDto } from './dto/register.dto.js';
 import { LoginDto } from './dto/login.dto.js';
 import type { Request } from 'express';
-import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
-import { JwtPayload } from './interfaces/jwt-payload.interface.js';
-
-interface AuthenticatedRequest extends Request {
-  user: JwtPayload;
-}
+import { JwtAuthGuard } from '../security/guards/jwt-auth.guard.js';
+import { JwtPayload } from '../security/interfaces/jwt-payload.interface.js';
+import type { AuthenticatedRequest } from '../security/interfaces/authenticated-request.interface.js';
 
 @Controller('auth')
 export class AuthController {

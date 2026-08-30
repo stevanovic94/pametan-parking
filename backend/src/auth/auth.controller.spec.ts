@@ -10,7 +10,7 @@ import {
 
 import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';
-import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
+import { JwtAuthGuard } from '../security/guards/jwt-auth.guard.js';
 
 describe('AuthController', () => {
   let controller: AuthController;

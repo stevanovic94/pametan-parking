@@ -4,11 +4,22 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { UsersController } from './users.controller.js';
 import { UsersService } from './users.service.js';
 
+import { JwtAuthGuard } from '../security/guards/jwt-auth.guard.js';
+import { RolesGuard } from '../security/guards/roles.guard.js';
+
 describe('UsersController', () => {
   let controller: UsersController;
 
   const usersServiceMock = {
     findAll: vi.fn(),
+  };
+
+  const jwtAuthGuardMock = {
+    canActivate: vi.fn(() => true),
+  };
+
+  const rolesGuardMock = {
+    canActivate: vi.fn(() => true),
   };
 
   beforeEach(async () => {
@@ -24,7 +35,11 @@ describe('UsersController', () => {
           useValue: usersServiceMock,
         },
       ],
-    }).compile();
+    }).overrideGuard(JwtAuthGuard)
+      .useValue(jwtAuthGuardMock)
+      .overrideGuard(RolesGuard)
+      .useValue(rolesGuardMock)
+      .compile();
 
     controller = moduleRef.get<UsersController>(UsersController);
   });
