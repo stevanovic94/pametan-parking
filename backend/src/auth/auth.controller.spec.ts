@@ -1,4 +1,5 @@
 import { Test } from '@nestjs/testing';
+
 import {
   beforeEach,
   describe,
@@ -9,18 +10,26 @@ import {
 
 import { AuthController } from './auth.controller.js';
 import { AuthService } from './auth.service.js';
+import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 
 describe('AuthController', () => {
   let controller: AuthController;
 
   const authServiceMock = {
     register: vi.fn(),
-    login: vi.fn()
+    login: vi.fn(),
+  };
+
+  const jwtAuthGuardMock = {
+    canActivate: vi.fn(() => true),
   };
 
   beforeEach(async () => {
     authServiceMock.register.mockReset();
     authServiceMock.login.mockReset();
+    jwtAuthGuardMock.canActivate.mockReset();
+
+    jwtAuthGuardMock.canActivate.mockReturnValue(true);
 
     const moduleRef = await Test.createTestingModule({
       controllers: [
@@ -32,7 +41,10 @@ describe('AuthController', () => {
           useValue: authServiceMock,
         },
       ],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue(jwtAuthGuardMock)
+      .compile();
 
     controller =
       moduleRef.get<AuthController>(AuthController);
@@ -49,17 +61,23 @@ describe('AuthController', () => {
     };
 
     const response = {
-      id: 'test-id',
-      email: 'petar@test.com',
-      role: 'USER',
+      accessToken: 'test-access-token',
+      user: {
+        id: 'test-id',
+        email: 'petar@test.com',
+        role: 'USER',
+      },
     };
 
     authServiceMock.login.mockResolvedValue(response);
 
-    const result = await controller.login(loginDto);
+    const result =
+      await controller.login(loginDto);
 
     expect(result).toEqual(response);
-    expect(authServiceMock.login).toHaveBeenCalledWith(loginDto);
-});
 
+    expect(
+      authServiceMock.login,
+    ).toHaveBeenCalledWith(loginDto);
+  });
 });

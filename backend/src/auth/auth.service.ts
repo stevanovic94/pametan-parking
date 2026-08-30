@@ -9,12 +9,14 @@ import * as argon2 from 'argon2';
 import { UsersService } from '../users/users.service.js';
 import { RegisterDto } from './dto/register.dto.js';
 import { LoginDto } from './dto/login.dto.js';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
 
   constructor(
     private readonly usersService: UsersService,
+    private readonly jwtService: JwtService
   ) {}
 
   // Asinhrona funkcija - izvrsavanje traje neko vreme
@@ -61,7 +63,16 @@ export class AuthService {
     throw new ForbiddenException('Korisnički nalog je deaktiviran.');
     }
 
+    const accessToken = await this.jwtService.signAsync({
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
     return {
+      accessToken,
+
+      user: {
       id: user.id,
       firstName: user.firstName,
       lastName: user.lastName,
@@ -70,6 +81,9 @@ export class AuthService {
       isActive: user.isActive,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
+      }
     };
+    
+    
   }
 }

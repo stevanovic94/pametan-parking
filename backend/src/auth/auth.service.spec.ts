@@ -10,6 +10,7 @@ import {
 import { UsersService } from '../users/users.service.js';
 import { AuthService } from './auth.service.js';
 import { UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -19,9 +20,14 @@ describe('AuthService', () => {
     create: vi.fn(),
   };
 
+  const jwtServiceMock = {
+    signAsync: vi.fn(),
+  };
+
   beforeEach(async () => {
     usersServiceMock.findByEmail.mockReset();
     usersServiceMock.create.mockReset();
+    jwtServiceMock.signAsync.mockReset();
 
     const moduleRef = await Test.createTestingModule({
       providers: [
@@ -30,6 +36,10 @@ describe('AuthService', () => {
           provide: UsersService,
           useValue: usersServiceMock,
         },
+        {
+          provide: JwtService,
+          useValue: jwtServiceMock,
+        }
       ],
     }).compile();
 
