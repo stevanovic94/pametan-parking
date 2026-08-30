@@ -9,6 +9,7 @@ import {
 
 import { UsersService } from '../users/users.service.js';
 import { AuthService } from './auth.service.js';
+import { UnauthorizedException } from '@nestjs/common';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -37,5 +38,16 @@ describe('AuthService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  it('should reject login when user does not exist', async () => {
+    usersServiceMock.findByEmail.mockResolvedValue(null);
+
+    await expect(
+      service.login({
+        email: 'nepostoji@test.com',
+        password: 'Test1234!',
+      }),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
   });
 });

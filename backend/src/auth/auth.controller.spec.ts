@@ -15,10 +15,12 @@ describe('AuthController', () => {
 
   const authServiceMock = {
     register: vi.fn(),
+    login: vi.fn()
   };
 
   beforeEach(async () => {
     authServiceMock.register.mockReset();
+    authServiceMock.login.mockReset();
 
     const moduleRef = await Test.createTestingModule({
       controllers: [
@@ -39,4 +41,25 @@ describe('AuthController', () => {
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
+
+  it('should login user', async () => {
+    const loginDto = {
+      email: 'petar@test.com',
+      password: 'Test1234!',
+    };
+
+    const response = {
+      id: 'test-id',
+      email: 'petar@test.com',
+      role: 'USER',
+    };
+
+    authServiceMock.login.mockResolvedValue(response);
+
+    const result = await controller.login(loginDto);
+
+    expect(result).toEqual(response);
+    expect(authServiceMock.login).toHaveBeenCalledWith(loginDto);
+});
+
 });
