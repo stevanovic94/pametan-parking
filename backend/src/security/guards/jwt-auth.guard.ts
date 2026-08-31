@@ -37,6 +37,10 @@ export class JwtAuthGuard implements CanActivate {
       const payload =
         await this.jwtService.verifyAsync<JwtPayload>(token);
 
+        if (payload.type !== 'access') {
+          throw new UnauthorizedException('Token nije pristupni token.');
+        }
+
       request.user = payload;
     } catch {
       throw new UnauthorizedException(

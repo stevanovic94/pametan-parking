@@ -18,6 +18,7 @@ describe('AuthController', () => {
   const authServiceMock = {
     register: vi.fn(),
     login: vi.fn(),
+    refresh: vi.fn(),
   };
 
   const jwtAuthGuardMock = {
@@ -27,8 +28,9 @@ describe('AuthController', () => {
   beforeEach(async () => {
     authServiceMock.register.mockReset();
     authServiceMock.login.mockReset();
-    jwtAuthGuardMock.canActivate.mockReset();
+    authServiceMock.refresh.mockReset();
 
+    jwtAuthGuardMock.canActivate.mockReset();
     jwtAuthGuardMock.canActivate.mockReturnValue(true);
 
     const moduleRef = await Test.createTestingModule({
@@ -71,8 +73,7 @@ describe('AuthController', () => {
 
     authServiceMock.login.mockResolvedValue(response);
 
-    const result =
-      await controller.login(loginDto);
+    const result = await controller.login(loginDto);
 
     expect(result).toEqual(response);
 
@@ -80,4 +81,29 @@ describe('AuthController', () => {
       authServiceMock.login,
     ).toHaveBeenCalledWith(loginDto);
   });
+
+  it('should refresh tokens', async () => {
+    const refreshDto = {
+      refreshToken: 'old-refresh-token',
+    };
+
+    const response = {
+      accessToken: 'new-access-token',
+      refreshToken: 'new-refresh-token',
+    };
+
+    authServiceMock.refresh.mockResolvedValue(
+      response,
+    );
+
+    const result =
+      await controller.refresh(refreshDto);
+
+    expect(result).toEqual(response);
+
+    expect(
+      authServiceMock.refresh,
+    ).toHaveBeenCalledWith(refreshDto);
+  });
+
 });

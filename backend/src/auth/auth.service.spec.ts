@@ -1,4 +1,7 @@
+import { UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import {
   beforeEach,
   describe,
@@ -8,9 +11,10 @@ import {
 } from 'vitest';
 
 import { UsersService } from '../users/users.service.js';
+
 import { AuthService } from './auth.service.js';
-import { UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { SessionsService } from './sessions/sessions.service.js';
+import { verify } from 'crypto';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -22,6 +26,36 @@ describe('AuthService', () => {
 
   const jwtServiceMock = {
     signAsync: vi.fn(),
+    verifyAsync: vi.fn(),
+  };
+
+  const configServiceMock = {
+    get: vi.fn((key: string) => {
+      if (
+        key === 'JWT_REFRESH_EXPIRES_IN_SECONDS'
+      ) {
+        return '2592000';
+      }
+
+      return undefined;
+    }),
+
+    getOrThrow: vi.fn((key: string) => {
+      if (key === 'JWT_REFRESH_SECRET') {
+        return 'test-refresh-secret';
+      }
+
+      throw new Error(
+        `Missing configuration: ${key}`,
+      );
+    }),
+  };
+
+  const sessionsServiceMock = {
+    create: vi.fn(),
+    findById: vi.fn(),
+    rotateRefreshToken: vi.fn(),
+    revoke: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -39,7 +73,15 @@ describe('AuthService', () => {
         {
           provide: JwtService,
           useValue: jwtServiceMock,
-        }
+        },
+        {
+          provide: ConfigService,
+          useValue: configServiceMock,
+        },
+        {
+          provide: SessionsService,
+          useValue: sessionsServiceMock,
+        },
       ],
     }).compile();
 
