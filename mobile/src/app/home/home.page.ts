@@ -1,5 +1,8 @@
 import { Component } from '@angular/core';
 import { IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/angular';
+import { inject } from '@angular/core';
+
+import { AuthSessionService } from '../core/auth/auth-session.service';
 
 @Component({
   selector: 'app-home',           //HTML naziv kojim se ta komponenta moze koristiti
@@ -8,5 +11,6 @@ import { IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/angular';
   imports: [IonHeader, IonToolbar, IonTitle, IonContent],
 })
 export class HomePage {           //export znači da ova klasa može da se koristi iz drugih fajlova
-  constructor() {}
+  readonly authSession =
+    inject(AuthSessionService);
 }

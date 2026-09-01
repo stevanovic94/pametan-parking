@@ -27,7 +27,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { finalize } from 'rxjs';
 
 import { AuthService } from '../../../core/auth/auth.service';
-
+import { AuthSessionService } from '../../../core/auth/auth-session.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-login',
@@ -54,19 +55,20 @@ export class LoginPage {
   private readonly authService =
     inject(AuthService);
 
+  private readonly authSession =
+    inject(AuthSessionService);
+
   private readonly changeDetector =
     inject(ChangeDetectorRef);
 
+  private readonly router =
+    inject(Router);
 
   isSubmitting = false;
 
   serverError = '';
 
   loginSuccess = '';
-
-  accessToken = '';
-
-  refreshToken = '';
 
 
   readonly loginForm =
@@ -112,20 +114,25 @@ export class LoginPage {
       this.loginForm.getRawValue();
 
 
-    console.log(
-      'LOGIN: zahtev se šalje',
-      loginRequest,
-    );
-
-
     this.authService
       .login(loginRequest)
       .pipe(
 
         finalize(() => {
 
+          /*
+           * finalize se izvršava i kada je HTTP zahtev uspešan
+           * i kada se završi greškom.
+           *
+           * Zato isSubmitting vraćamo na false samo ovde,
+           * a ne posebno u next i error.
+           */
           this.isSubmitting = false;
 
+          /*
+           * Angular treba obavestiti da su se promenile
+           * obične promenljive koje koristi template.
+           */
           this.changeDetector.markForCheck();
 
         }),
@@ -133,20 +140,36 @@ export class LoginPage {
       )
       .subscribe({
 
+        /*
+         * Uspešna prijava.
+         */
         next: (response) => {
 
-          console.log(
-            'LOGIN NEXT:',
+          /*
+           * AuthSessionService preuzima odgovornost
+           * za čuvanje access tokena, refresh tokena
+           * i podataka prijavljenog korisnika.
+           */
+
+          this.isSubmitting = false;
+
+          this.authSession.setSession(
+            response
+          );
+
+          void this.router.navigateByUrl(
+            '/home'
+          );
+          
+          this.authSession.setSession(
             response,
           );
 
 
-          this.accessToken =
-            response.accessToken;
-
-          this.refreshToken =
-            response.refreshToken;
-
+          console.log(
+            'Korisnik je uspešno prijavljen:',
+            response.user.email,
+          );
 
           this.loginSuccess =
             `Uspešna prijava: ${response.user.email}`;
@@ -156,14 +179,7 @@ export class LoginPage {
 
         },
 
-
         error: (error: HttpErrorResponse) => {
-
-          console.log(
-            'LOGIN ERROR:',
-            error,
-          );
-
 
           if (error.status === 401) {
 

@@ -9,6 +9,9 @@ import { RegisterRequest } from './models/register-request.model';
 import { AuthResponse } from './models/auth-response.model';
 import { AuthUser } from './models/auth-user.model';
 
+import { RefreshRequest } from './models/refresh-request.model';
+import { RefreshResponse } from './models/refresh-response.model';
+
 @Injectable({
   providedIn: 'root'
 })
@@ -29,6 +32,28 @@ export class AuthService {
     return this.http.post<AuthUser>(
       `${this.apiUrl}/register`,
       request
+    );
+  }
+
+  refresh(
+    request: RefreshRequest
+  ): Observable<RefreshResponse> {
+
+    return this.http.post<RefreshResponse>(
+      `${this.apiUrl}/refresh`,
+      request
+    );
+  }
+
+  logout(): Observable<{
+    message: string;
+  }> {
+
+    return this.http.post<{
+      message: string;
+    }>(
+      `${this.apiUrl}/logout`,
+      {}
     );
   }
 }
