@@ -1,15 +1,17 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { 
+import {
   AbstractControl,
   FormBuilder,
-  ReactiveFormsModule,  
+  ReactiveFormsModule,
   ValidationErrors,
   ValidatorFn,
   Validators
- } from '@angular/forms';
+} from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { IonButton, IonContent, IonHeader, IonInput, IonTitle, IonToolbar } from '@ionic/angular';
+import { HttpErrorResponse } from '@angular/common/http';
+import { AuthService } from '../../../core/auth/auth.service';
 
 const passwordsMatchValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
   const password = control.get('password')?.value;
@@ -28,6 +30,11 @@ const passwordsMatchValidator: ValidatorFn = (control: AbstractControl): Validat
 export class RegisterPage {
 
   private readonly formBuilder = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+
+  isSubmitting = false;
+  serverError = '';
+  registrationSuccessful = false;
 
   readonly registerForm = this.formBuilder.nonNullable.group(
     {
@@ -83,6 +90,44 @@ export class RegisterPage {
       return;
     }
 
-    console.log('Forma za registraciju je validna.');
+    this.isSubmitting = true;
+    this.serverError = '';
+    this.registrationSuccessful = false;
+
+    const formValue = this.registerForm.getRawValue();
+
+    //this.authService.register({}).subscribe({});
+    this.authService.register({
+      firstName: formValue.firstName,
+      lastName: formValue.lastName,
+      email: formValue.email,
+      password: formValue.password
+    }).subscribe({ // vraca Observable<AuthUser>
+      //next: () => {}, error: () => {} 
+
+      // 1) uspesan odgovor servera
+      next: () => {
+        this.isSubmitting = false;
+        this.registrationSuccessful = true;
+
+        this.registerForm.reset();
+      },
+
+      // 2) HTTP zahtev zavrsen greskom
+      error: (error: HttpErrorResponse) => {
+        this.isSubmitting = false;
+
+        if (error.status === 409) {
+          this.serverError = 'Korisnik sa ovom email adresom postoji.';
+        }
+
+        if (error.status === 400) {
+          this.serverError = 'Podaci za registraciju nisu ispravni';
+        }
+
+        this.serverError = 'Doslo je do greske. Pokusajte ponovo.'
+      }
+    });
+
   }
 }

@@ -1,48 +1,192 @@
-import { Component, inject } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  inject,
+} from '@angular/core';
+
 import { CommonModule } from '@angular/common';
-import { 
+
+import {
   FormBuilder,
   ReactiveFormsModule,
-  Validators
+  Validators,
 } from '@angular/forms';
+
 import { RouterLink } from '@angular/router';
-// uvoz komponenti iz Ionic biblioteke
-import { IonButton, IonContent, IonHeader, IonInput, IonTitle, IonToolbar } from '@ionic/angular';
-                                
+
+import {
+  IonButton,
+  IonContent,
+  IonHeader,
+  IonInput,
+  IonTitle,
+  IonToolbar,
+} from '@ionic/angular';
+
+import { HttpErrorResponse } from '@angular/common/http';
+import { finalize } from 'rxjs';
+
+import { AuthService } from '../../../core/auth/auth.service';
+
+
 @Component({
   selector: 'app-login',
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
-  //dozvole komponentama da koriste se koriste u HTML-u stranici 
-  imports: [IonButton, IonContent, IonHeader, IonInput, IonTitle, IonToolbar, CommonModule, ReactiveFormsModule, RouterLink]                                  
+
+  imports: [
+    IonButton,
+    IonContent,
+    IonHeader,
+    IonInput,
+    IonTitle,
+    IonToolbar,
+    CommonModule,
+    ReactiveFormsModule,
+    RouterLink,
+  ],
 })
-export class LoginPage{
+export class LoginPage {
 
-  private readonly formBuilder = inject(FormBuilder);
+  private readonly formBuilder =
+    inject(FormBuilder);
 
-  readonly loginForm = this.formBuilder.nonNullable.group({
-    email: [
-      '',
-      [
-        Validators.required,
-        Validators.email
-      ]
-    ],
-    password: [
-      '',
-      [
-        Validators.required,
-      ]
-    ]
-  });
+  private readonly authService =
+    inject(AuthService);
+
+  private readonly changeDetector =
+    inject(ChangeDetectorRef);
+
+
+  isSubmitting = false;
+
+  serverError = '';
+
+  loginSuccess = '';
+
+  accessToken = '';
+
+  refreshToken = '';
+
+
+  readonly loginForm =
+    this.formBuilder.nonNullable.group({
+
+      email: [
+        '',
+        [
+          Validators.required,
+          Validators.email,
+        ],
+      ],
+
+      password: [
+        '',
+        [
+          Validators.required,
+        ],
+      ],
+
+    });
+
 
   onSubmit(): void {
-    if(this.loginForm.invalid) {
+
+    if (
+      this.loginForm.invalid ||
+      this.isSubmitting
+    ) {
       this.loginForm.markAllAsTouched();
       return;
     }
 
-    console.log('Forma za prijavu je validna.');
-  }
 
+    this.isSubmitting = true;
+
+    this.serverError = '';
+
+    this.loginSuccess = '';
+
+
+    const loginRequest =
+      this.loginForm.getRawValue();
+
+
+    console.log(
+      'LOGIN: zahtev se šalje',
+      loginRequest,
+    );
+
+
+    this.authService
+      .login(loginRequest)
+      .pipe(
+
+        finalize(() => {
+
+          this.isSubmitting = false;
+
+          this.changeDetector.markForCheck();
+
+        }),
+
+      )
+      .subscribe({
+
+        next: (response) => {
+
+          console.log(
+            'LOGIN NEXT:',
+            response,
+          );
+
+
+          this.accessToken =
+            response.accessToken;
+
+          this.refreshToken =
+            response.refreshToken;
+
+
+          this.loginSuccess =
+            `Uspešna prijava: ${response.user.email}`;
+
+
+          this.changeDetector.markForCheck();
+
+        },
+
+
+        error: (error: HttpErrorResponse) => {
+
+          console.log(
+            'LOGIN ERROR:',
+            error,
+          );
+
+
+          if (error.status === 401) {
+
+            this.serverError =
+              'Email ili lozinka nisu ispravni.';
+
+          } else if (error.status === 403) {
+
+            this.serverError =
+              'Korisnički nalog je deaktiviran.';
+
+          } else {
+
+            this.serverError =
+              'Došlo je do greške. Pokušajte ponovo.';
+
+          }
+
+
+          this.changeDetector.markForCheck();
+
+        },
+
+      });
+  }
 }
