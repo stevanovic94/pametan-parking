@@ -19,6 +19,7 @@ describe('AuthController', () => {
     register: vi.fn(),
     login: vi.fn(),
     refresh: vi.fn(),
+    logout: vi.fn(),
   };
 
   const jwtAuthGuardMock = {
@@ -29,6 +30,7 @@ describe('AuthController', () => {
     authServiceMock.register.mockReset();
     authServiceMock.login.mockReset();
     authServiceMock.refresh.mockReset();
+    authServiceMock.logout.mockReset();
 
     jwtAuthGuardMock.canActivate.mockReset();
     jwtAuthGuardMock.canActivate.mockReturnValue(true);

@@ -13,6 +13,7 @@ import {
 } from 'vitest';
 
 import { JwtAuthGuard } from './jwt-auth.guard.js';
+import { TokenSecurityService } from '../services/token-security.service.js';
 
 describe('JwtAuthGuard', () => {
   let guard: JwtAuthGuard;
@@ -21,11 +22,19 @@ describe('JwtAuthGuard', () => {
     verifyAsync: vi.fn(),
   };
 
+  const tokenSecurityServiceMock = {
+    isAccesTokenBlacklisted: vi.fn(),
+    isSessionActive: vi.fn(),
+  }
+
   beforeEach(() => {
     jwtServiceMock.verifyAsync.mockReset();
+    tokenSecurityServiceMock.isAccesTokenBlacklisted.mockReset();
+    tokenSecurityServiceMock.isSessionActive.mockReset();
 
     guard = new JwtAuthGuard(
       jwtServiceMock as unknown as JwtService,
+      tokenSecurityServiceMock as unknown as TokenSecurityService,
     );
   });
 

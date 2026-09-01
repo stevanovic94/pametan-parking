@@ -19,6 +19,7 @@ import { RegisterDto } from './dto/register.dto.js';
 import { JwtAuthGuard } from '../security/guards/jwt-auth.guard.js';
 import type { AuthenticatedRequest } from '../security/interfaces/authenticated-request.interface.js';
 import type { JwtPayload } from '../security/interfaces/jwt-payload.interface.js';
+import { request } from 'node:http';
 
 @Controller('auth')
 export class AuthController {
@@ -54,6 +55,17 @@ export class AuthController {
     ) {
         return this.authService.refresh(
             refreshDto,
+        );
+    }
+
+    @Post('logout')
+    @HttpCode(HttpStatus.OK)
+    @UseGuards(JwtAuthGuard)
+    logout(
+        @Req() request: AuthenticatedRequest,
+    ) {
+        return this.authService.logout(
+            request.user,
         );
     }
 }

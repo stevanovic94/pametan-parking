@@ -15,6 +15,7 @@ import { UsersService } from '../users/users.service.js';
 import { AuthService } from './auth.service.js';
 import { SessionsService } from './sessions/sessions.service.js';
 import { verify } from 'crypto';
+import { TokenSecurityService } from '../security/services/token-security.service.js';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -58,10 +59,15 @@ describe('AuthService', () => {
     revoke: vi.fn(),
   };
 
+  const tokenSecurityServiceMock = {
+    logoutSession: vi.fn(),
+  }
+
   beforeEach(async () => {
     usersServiceMock.findByEmail.mockReset();
     usersServiceMock.create.mockReset();
     jwtServiceMock.signAsync.mockReset();
+    tokenSecurityServiceMock.logoutSession.mockReset();
 
     const moduleRef = await Test.createTestingModule({
       providers: [
@@ -81,6 +87,10 @@ describe('AuthService', () => {
         {
           provide: SessionsService,
           useValue: sessionsServiceMock,
+        },
+        {
+          provide: TokenSecurityService,
+          useValue: tokenSecurityServiceMock,
         },
       ],
     }).compile();

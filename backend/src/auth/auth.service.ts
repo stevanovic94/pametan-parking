@@ -10,12 +10,14 @@ import * as argon2 from 'argon2';
 import { randomUUID } from 'node:crypto';
 
 import { UsersService } from '../users/users.service.js';
+import { SessionsService } from './sessions/sessions.service.js';
+import { RefreshTokenPayload } from './interfaces/refresh-token-payload.interface.js';
+import type { JwtPayload } from '../security/interfaces/jwt-payload.interface.js';
+import { TokenSecurityService } from '../security/services/token-security.service.js';
 
 import { LoginDto } from './dto/login.dto.js';
 import { RefreshDto } from './dto/refresh.dto.js';
 import { RegisterDto } from './dto/register.dto.js';
-import { RefreshTokenPayload } from './interfaces/refresh-token-payload.interface.js';
-import { SessionsService } from './sessions/sessions.service.js';
 
 @Injectable()
 export class AuthService {
@@ -25,6 +27,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly sessionsService: SessionsService,
+    private readonly tokenSecurityService: TokenSecurityService,
   ) { }
 
   private getRefreshSecret(): string {
@@ -41,15 +44,22 @@ export class AuthService {
     );
   }
 
-  private createAccessToken(user: {
-    id: string;
-    email: string;
-    role: 'USER' | 'OPERATOR' | 'ADMIN';
-  }) {
+  private createAccessToken(
+    user: {
+      id: string;
+      email: string;
+      role: 'USER' | 'OPERATOR' | 'ADMIN';
+    },
+    sessionId: string,
+  ) {
     return this.jwtService.signAsync({
       sub: user.id,
       email: user.email,
       role: user.role,
+
+      sid: sessionId,
+      jti: randomUUID(),
+
       type: 'access',
     });
   }
@@ -102,7 +112,11 @@ export class AuthService {
     const sessionId = randomUUID();
     const refreshExpiresInSeconds = this.getRefreshExpiresInSeconds();
     const sessionExpiresAt = new Date(Date.now() + refreshExpiresInSeconds * 1000,);
-    const accessToken = await this.createAccessToken(user);
+    const accessToken =
+      await this.createAccessToken(
+        user,
+        sessionId,
+      );
     const refreshPayload: RefreshTokenPayload = {
       sub: user.id,
       sid: sessionId,
@@ -242,7 +256,7 @@ export class AuthService {
     }
 
     const newAccessToken =
-      await this.createAccessToken(user);
+      await this.createAccessToken(user, session.id,);
 
     const newRefreshPayload: RefreshTokenPayload = {
       sub: user.id,
@@ -276,6 +290,24 @@ export class AuthService {
       accessToken: newAccessToken,
       refreshToken: newRefreshToken,
     };
+  }
+
+  async logout(payload: JwtPayload,) {
+    if(!payload.sid || !payload.jti || !payload.exp){
+      throw new UnauthorizedException('Pristup token nema potrebne podatke.');
+    }
+
+    await this.tokenSecurityService.logoutSession({
+      sessionId: payload.sid,
+      userId: payload.sub,
+      jti: payload.jti,
+      tokenExpiresAt: new Date(payload.exp * 1000), 
+      //JWT exp je u sekundama, dok JS Date očekuje milisekunde
+    });
+
+    return{
+      message: 'Uspesno ste se odjavili.',
+    }
   }
 
 }

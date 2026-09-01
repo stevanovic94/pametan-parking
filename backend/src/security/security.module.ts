@@ -5,8 +5,13 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import { RolesGuard } from './guards/roles.guard.js';
 
+import { PrismaModule } from '../prisma/prisma.module.js';
+
+import { TokenSecurityService } from './services/token-security.service.js';
+
 @Module({
   imports: [
+    PrismaModule,
     JwtModule.registerAsync({
       inject: [
         ConfigService,
@@ -32,12 +37,14 @@ import { RolesGuard } from './guards/roles.guard.js';
   providers: [
     JwtAuthGuard,
     RolesGuard,
+    TokenSecurityService,
   ],
 
   exports: [
     JwtModule,
     JwtAuthGuard,
     RolesGuard,
+    TokenSecurityService,
   ],
 })
 export class SecurityModule {}

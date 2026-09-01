@@ -10,13 +10,15 @@ import type { Request } from 'express';
 
 import type { AuthenticatedRequest } from '../interfaces/authenticated-request.interface.js';
 import type { JwtPayload } from '../interfaces/jwt-payload.interface.js';
+import { TokenSecurityService } from '../services/token-security.service.js';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
 
   constructor(
     private readonly jwtService: JwtService,
-  ) {}
+    private readonly tokenSecurityService: TokenSecurityService,
+  ) { }
 
   async canActivate(
     context: ExecutionContext,
@@ -37,9 +39,23 @@ export class JwtAuthGuard implements CanActivate {
       const payload =
         await this.jwtService.verifyAsync<JwtPayload>(token);
 
-        if (payload.type !== 'access') {
-          throw new UnauthorizedException('Token nije pristupni token.');
-        }
+      if (payload.type !== 'access' || !payload.sid || !payload.jti) {
+        throw new UnauthorizedException('Token nije validan pristupni token.');
+      }
+
+      const tokenIsBlacklisted =
+        await this.tokenSecurityService.isAccessTokenBlacklisted(payload.jti,);
+
+      if (tokenIsBlacklisted) {
+        throw new UnauthorizedException('Pristupni token je opozvan.',);
+      }
+
+      const sessionIsActive =
+        await this.tokenSecurityService.isSessionActive(payload.sid,payload.sub,);
+
+      if (!sessionIsActive) {
+        throw new UnauthorizedException('Korisnička sesija više nije aktivna.',);
+      }
 
       request.user = payload;
     } catch {
