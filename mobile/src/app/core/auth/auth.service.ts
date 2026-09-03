@@ -11,6 +11,7 @@ import { AuthUser } from './models/auth-user.model';
 
 import { RefreshRequest } from './models/refresh-request.model';
 import { RefreshResponse } from './models/refresh-response.model';
+import { AuthMeResponse } from './models/auth-me-response.model';
 
 @Injectable({
   providedIn: 'root'
@@ -54,6 +55,19 @@ export class AuthService {
     }>(
       `${this.apiUrl}/logout`,
       {}
+    );
+  }
+
+  me(): Observable<AuthMeResponse> {
+
+    return this.http.get<AuthMeResponse>(
+      `${this.apiUrl}/me`
+    );
+  }
+
+  getCurrentUser(): Observable<AuthUser> {
+    return this.http.get<AuthUser>(
+      `${this.apiUrl}/me`,
     );
   }
 }
