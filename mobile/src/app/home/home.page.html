@@ -35,5 +35,11 @@
   } @else {
   <p>Korisnik nije prijavljen.</p>
   }
-
+  @if (
+  authSession.user()?.role === 'ADMIN'
+  ) {
+  <ion-button routerLink="/admin">
+    Administracija
+  </ion-button>
+  }
 </ion-content>

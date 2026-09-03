@@ -18,6 +18,7 @@ import {
 
 import { AuthSessionService } from '../core/auth/auth-session.service';
 import { AuthService } from '../core/auth/auth.service';
+import { RouterLink } from '@angular/router';
 
 
 @Component({
@@ -31,6 +32,7 @@ import { AuthService } from '../core/auth/auth.service';
     IonTitle,
     IonContent,
     IonButton,
+    RouterLink,
   ],
 })
 export class HomePage {

@@ -1,7 +1,9 @@
+import { UserRole } from "../types/user-role.type";
+
 export interface AuthMeResponse {
     sub: string;
     email: string;
-    role: 'USER' | 'OPERATOR' | 'ADMIN';
+    role: UserRole;
     sid: string;
     jti: string;
     type: 'access';
