@@ -1,50 +1,107 @@
-import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import {
+  HttpClient,
+} from '@angular/common/http';
 
-import { environment } from '../../../environments/environment';
+import {
+  inject,
+  Injectable,
+} from '@angular/core';
 
-import { LoginRequest } from './models/login-request.model';
-import { RegisterRequest } from './models/register-request.model';
-import { AuthResponse } from './models/auth-response.model';
-import { AuthUser } from './models/auth-user.model';
+import {
+  Observable,
+} from 'rxjs';
 
-import { RefreshRequest } from './models/refresh-request.model';
-import { RefreshResponse } from './models/refresh-response.model';
-import { AuthMeResponse } from './models/auth-me-response.model';
+import {
+  environment,
+} from '../../../environments/environment';
+
+import {
+  LoginRequest,
+} from './models/login-request.model';
+
+import {
+  RegisterRequest,
+} from './models/register-request.model';
+
+import {
+  RefreshRequest,
+} from './models/refresh-request.model';
+
+import {
+  AuthResponse,
+} from './models/auth-response.model';
+
+import {
+  RefreshResponse,
+} from './models/refresh-response.model';
+
+import {
+  AuthUser,
+} from './models/auth-user.model';
+
+
+export interface CurrentUserResponse {
+  sub: string;
+  sid: string;
+  jti: string;
+  email: string;
+
+  role:
+  | 'USER'
+  | 'OPERATOR'
+  | 'ADMIN';
+
+  type: 'access';
+
+  iat?: number;
+  exp?: number;
+}
+
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
 
-  private readonly http = inject(HttpClient);
+  private readonly http =
+    inject(HttpClient);
 
-  private readonly apiUrl = `${environment.apiUrl}/auth`;
+  private readonly apiUrl =
+    `${environment.apiUrl}/auth`;
 
-  login(request: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>( //server vraca podatke strukture AuthResponse
+
+  login(
+    request: LoginRequest,
+  ): Observable<AuthResponse> {
+
+    return this.http.post<AuthResponse>(
       `${this.apiUrl}/login`,
-      request
+      request,
     );
   }
 
-  register(request: RegisterRequest): Observable<AuthUser> {
+
+  register(
+    request: RegisterRequest,
+  ): Observable<AuthUser> {
+
     return this.http.post<AuthUser>(
       `${this.apiUrl}/register`,
-      request
+      request,
     );
   }
 
+
   refresh(
-    request: RefreshRequest
+    request: RefreshRequest,
   ): Observable<RefreshResponse> {
 
     return this.http.post<RefreshResponse>(
       `${this.apiUrl}/refresh`,
-      request
+      request,
     );
   }
+
 
   logout(): Observable<{
     message: string;
@@ -54,19 +111,15 @@ export class AuthService {
       message: string;
     }>(
       `${this.apiUrl}/logout`,
-      {}
+      {},
     );
   }
 
-  me(): Observable<AuthMeResponse> {
 
-    return this.http.get<AuthMeResponse>(
-      `${this.apiUrl}/me`
-    );
-  }
+  getCurrentUser():
+    Observable<CurrentUserResponse> {
 
-  getCurrentUser(): Observable<AuthUser> {
-    return this.http.get<AuthUser>(
+    return this.http.get<CurrentUserResponse>(
       `${this.apiUrl}/me`,
     );
   }

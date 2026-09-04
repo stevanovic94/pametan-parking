@@ -289,11 +289,21 @@ export class AuthService {
     return {
       accessToken: newAccessToken,
       refreshToken: newRefreshToken,
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        isActive: user.isActive,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
     };
   }
 
   async logout(payload: JwtPayload,) {
-    if(!payload.sid || !payload.jti || !payload.exp){
+    if (!payload.sid || !payload.jti || !payload.exp) {
       throw new UnauthorizedException('Pristup token nema potrebne podatke.');
     }
 
@@ -301,11 +311,11 @@ export class AuthService {
       sessionId: payload.sid,
       userId: payload.sub,
       jti: payload.jti,
-      tokenExpiresAt: new Date(payload.exp * 1000), 
+      tokenExpiresAt: new Date(payload.exp * 1000),
       //JWT exp je u sekundama, dok JS Date očekuje milisekunde
     });
 
-    return{
+    return {
       message: 'Uspesno ste se odjavili.',
     }
   }
