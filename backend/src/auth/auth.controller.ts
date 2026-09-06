@@ -9,8 +9,6 @@ import {
     UseGuards,
 } from '@nestjs/common';
 
-import type { Request } from 'express';
-
 import { AuthService } from './auth.service.js';
 import { LoginDto } from './dto/login.dto.js';
 import { RefreshDto } from './dto/refresh.dto.js';
@@ -18,8 +16,6 @@ import { RegisterDto } from './dto/register.dto.js';
 
 import { JwtAuthGuard } from '../security/guards/jwt-auth.guard.js';
 import type { AuthenticatedRequest } from '../security/interfaces/authenticated-request.interface.js';
-import type { JwtPayload } from '../security/interfaces/jwt-payload.interface.js';
-import { request } from 'node:http';
 
 @Controller('auth')
 export class AuthController {

@@ -1,6 +1,7 @@
 import {
   HttpErrorResponse,
   HttpInterceptorFn,
+  HttpRequest,
 } from '@angular/common/http';
 
 import {
@@ -12,6 +13,10 @@ import {
   switchMap,
   throwError,
 } from 'rxjs';
+
+import {
+  environment,
+} from '../../../environments/environment';
 
 import {
   AuthSessionService,
@@ -29,64 +34,83 @@ export const authInterceptor:
     next,
   ) => {
 
-    const authSession =
-      inject(AuthSessionService);
+    /*
+     * JWT sme da se šalje samo našem API-ju.
+     */
+    const isBackendRequest =
+      request.url.startsWith(
+        environment.apiUrl,
+      );
 
 
     /*
-     * Auth endpointi nad kojima NE želimo
-     * automatski refresh.
-     *
-     * Posebno je bitan /auth/refresh,
-     * jer bi u suprotnom nastala refresh petlja.
+     * Zahteve prema drugim serverima
+     * interceptor uopšte ne dira.
      */
-    const isLoginRequest =
-      request.url.includes(
-        '/auth/login',
-      );
-
-    const isRegisterRequest =
-      request.url.includes(
-        '/auth/register',
-      );
-
-    const isRefreshRequest =
-      request.url.includes(
-        '/auth/refresh',
-      );
-
-
-    if (
-      isLoginRequest ||
-      isRegisterRequest ||
-      isRefreshRequest
-    ) {
-
+    if (!isBackendRequest) {
       return next(request);
     }
 
 
-    /*
-     * Tek za zahteve kojima treba autentifikacija
-     * koristimo AuthRefreshService.
-     */
+    const authSession =
+      inject(AuthSessionService);
+
     const authRefresh =
       inject(AuthRefreshService);
+
+
+    const authBaseUrl =
+      `${environment.apiUrl}/auth`;
+
+
+    const isLoginRequest =
+      request.url ===
+      `${authBaseUrl}/login`;
+
+    const isRegisterRequest =
+      request.url ===
+      `${authBaseUrl}/register`;
+
+    const isRefreshRequest =
+      request.url ===
+      `${authBaseUrl}/refresh`;
+
+    const isLogoutRequest =
+      request.url ===
+      `${authBaseUrl}/logout`;
+
+
+    /*
+     * Login, register i refresh ne koriste
+     * access token.
+     *
+     * Logout ga koristi.
+     */
+    const shouldSkipAccessToken =
+      isLoginRequest ||
+      isRegisterRequest ||
+      isRefreshRequest;
 
 
     const accessToken =
       authSession.accessToken();
 
 
-    const requestToSend =
+    let requestToSend =
+      request;
+
+
+    if (
+      !shouldSkipAccessToken &&
       accessToken
-        ? request.clone({
-          setHeaders: {
-            Authorization:
-              `Bearer ${accessToken}`,
-          },
-        })
-        : request;
+    ) {
+
+      requestToSend =
+        addAccessToken(
+          request,
+          accessToken,
+        );
+    }
 
 
     return next(
@@ -100,12 +124,19 @@ export const authInterceptor:
         ) => {
 
           /*
-           * Ako greška nije 401,
-           * interceptor je samo prosleđuje.
+           * Refresh pokušavamo samo za
+           * regularan zaštićeni API zahtev.
            */
-          if (
-            error.status !== 401
-          ) {
+          const shouldTryRefresh =
+            error.status === 401 &&
+            !isLoginRequest &&
+            !isRegisterRequest &&
+            !isRefreshRequest &&
+            !isLogoutRequest &&
+            authSession.refreshToken() !== null;
+
+
+          if (!shouldTryRefresh) {
 
             return throwError(
               () => error,
@@ -113,23 +144,6 @@ export const authInterceptor:
           }
 
 
-          /*
-           * Bez refresh tokena nema
-           * mogućnosti obnove sesije.
-           */
-          if (
-            !authSession.refreshToken()
-          ) {
-
-            return throwError(
-              () => error,
-            );
-          }
-
-
-          /*
-           * Pokušavamo refresh.
-           */
           return authRefresh
             .refreshAccessToken()
             .pipe(
@@ -139,17 +153,11 @@ export const authInterceptor:
                   newAccessToken,
                 ) => {
 
-                  /*
-                   * Ponovimo originalni HTTP zahtev,
-                   * ali sa novim access tokenom.
-                   */
                   const retryRequest =
-                    request.clone({
-                      setHeaders: {
-                        Authorization:
-                          `Bearer ${newAccessToken}`,
-                      },
-                    });
+                    addAccessToken(
+                      request,
+                      newAccessToken,
+                    );
 
 
                   return next(
@@ -162,3 +170,17 @@ export const authInterceptor:
       ),
     );
   };
+
+
+function addAccessToken(
+  request: HttpRequest<unknown>,
+  accessToken: string,
+): HttpRequest<unknown> {
+
+  return request.clone({
+    setHeaders: {
+      Authorization:
+        `Bearer ${accessToken}`,
+    },
+  });
+}

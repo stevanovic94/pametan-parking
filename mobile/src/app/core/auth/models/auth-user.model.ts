@@ -1,9 +1,11 @@
+import { UserRole } from "../types/user-role.type";
+
 export interface AuthUser {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
-  role: 'USER' | 'OPERATOR' | 'ADMIN';
+  role: UserRole;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

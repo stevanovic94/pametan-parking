@@ -19,17 +19,17 @@ import {
 } from 'vitest';
 
 import {
-  AdminDashboardPage,
-} from './admin-dashboard.page';
+  ForbiddenPage,
+} from './forbidden.page';
 
 
-describe('AdminDashboardPage', () => {
+describe('ForbiddenPage', () => {
 
   let component:
-    AdminDashboardPage;
+    ForbiddenPage;
 
   let fixture:
-    ComponentFixture<AdminDashboardPage>;
+    ComponentFixture<ForbiddenPage>;
 
 
   beforeEach(async () => {
@@ -38,7 +38,7 @@ describe('AdminDashboardPage', () => {
       .configureTestingModule({
 
         imports: [
-          AdminDashboardPage,
+          ForbiddenPage,
         ],
 
         providers: [
@@ -52,7 +52,7 @@ describe('AdminDashboardPage', () => {
 
     fixture =
       TestBed.createComponent(
-        AdminDashboardPage,
+        ForbiddenPage,
       );
 
     component =

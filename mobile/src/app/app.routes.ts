@@ -34,7 +34,7 @@ export const routes: Routes = [
   },
   {
     path: 'forbidden',
-    loadComponent: () => import('./features/errors/forbiden/forbiden.page').then( m => m.ForbidenPage)
+    loadComponent: () => import('./features/errors/forbidden/forbidden.page').then( m => m.ForbiddenPage)
   },
   {
     path: 'admin',

@@ -151,8 +151,6 @@ export class LoginPage {
            * i podataka prijavljenog korisnika.
            */
 
-          this.isSubmitting = false;
-
           this.authSession.setSession(
             response
           );
@@ -160,20 +158,14 @@ export class LoginPage {
           void this.router.navigateByUrl(
             '/home'
           );
-          
-          this.authSession.setSession(
-            response,
-          );
-
 
           console.log(
             'Korisnik je uspešno prijavljen:',
-            response.user.email,
+            response.user.email
           );
 
           this.loginSuccess =
             `Uspešna prijava: ${response.user.email}`;
-
 
           this.changeDetector.markForCheck();
 

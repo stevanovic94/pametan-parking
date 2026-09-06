@@ -1,0 +1,12 @@
+@if (authSession.isAuthenticated()) {
+
+<ion-button fill="clear" size="small" [disabled]="isLoggingOut" (click)="logout()">
+
+    @if (isLoggingOut) {
+    Odjava...
+    } @else {
+    Odjavi se
+    }
+
+</ion-button>
+}

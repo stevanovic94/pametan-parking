@@ -6,6 +6,7 @@ import {
 
 import {
   IonButton,
+  IonButtons,
   IonContent,
   IonHeader,
   IonTitle,
@@ -19,6 +20,7 @@ import {
 import { AuthSessionService } from '../core/auth/auth-session.service';
 import { AuthService } from '../core/auth/auth.service';
 import { RouterLink } from '@angular/router';
+import { LogoutButtonComponent } from '../shared/components/logout-button/logout-button.component';
 
 
 @Component({
@@ -32,6 +34,8 @@ import { RouterLink } from '@angular/router';
     IonTitle,
     IonContent,
     IonButton,
+    IonButtons,
+    LogoutButtonComponent,
     RouterLink,
   ],
 })

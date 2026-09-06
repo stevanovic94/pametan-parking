@@ -118,14 +118,17 @@ export class RegisterPage {
         this.isSubmitting = false;
 
         if (error.status === 409) {
-          this.serverError = 'Korisnik sa ovom email adresom postoji.';
+          this.serverError = 'Korisnik sa ovom email adresom već postoji.';
+          return;
         }
 
         if (error.status === 400) {
-          this.serverError = 'Podaci za registraciju nisu ispravni';
+          this.serverError =
+            'Podaci za registraciju nisu ispravni.';
+          return;
         }
 
-        this.serverError = 'Doslo je do greske. Pokusajte ponovo.'
+        this.serverError = 'Došlo je do greške. Pokušajte ponovo.';
       }
     });
 

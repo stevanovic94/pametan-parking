@@ -1,19 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { IonContent, IonHeader, IonTitle, IonToolbar } from '@ionic/angular';
+import { IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, } from '@ionic/angular';
+import { LogoutButtonComponent } from '../../../shared/components/logout-button/logout-button.component';
 
 @Component({
   selector: 'app-admin-dashboard',
   templateUrl: './admin-dashboard.page.html',
   styleUrls: ['./admin-dashboard.page.scss'],
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule]
+  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, IonButtons, LogoutButtonComponent]
 })
-export class AdminDashboardPage implements OnInit {
+export class AdminDashboardPage {
 
   constructor() { }
 
-  ngOnInit() {
-  }
 
 }

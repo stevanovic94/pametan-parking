@@ -39,23 +39,7 @@ import {
   AuthUser,
 } from './models/auth-user.model';
 
-
-export interface CurrentUserResponse {
-  sub: string;
-  sid: string;
-  jti: string;
-  email: string;
-
-  role:
-  | 'USER'
-  | 'OPERATOR'
-  | 'ADMIN';
-
-  type: 'access';
-
-  iat?: number;
-  exp?: number;
-}
+import { AuthMeResponse } from './models/auth-me-response.model';
 
 
 @Injectable({
@@ -117,9 +101,9 @@ export class AuthService {
 
 
   getCurrentUser():
-    Observable<CurrentUserResponse> {
+    Observable<AuthMeResponse> {
 
-    return this.http.get<CurrentUserResponse>(
+    return this.http.get<AuthMeResponse>(
       `${this.apiUrl}/me`,
     );
   }
