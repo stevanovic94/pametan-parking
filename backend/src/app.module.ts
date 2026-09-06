@@ -7,11 +7,12 @@ import { PrismaModule } from './prisma/prisma.module.js';
 import { UsersModule } from './users/users.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { SecurityModule } from './security/security.module.js';
+import { ParkingLotsModule } from './parking-lots/parking-lots.module.js';
 
 @Module({
   imports: [ConfigModule.forRoot({
     isGlobal: true,
-  }), PrismaModule, UsersModule, AuthModule, SecurityModule],
+  }), PrismaModule, UsersModule, AuthModule, SecurityModule, ParkingLotsModule],
   controllers: [AppController, HealthController],
   providers: [AppService],
 })
