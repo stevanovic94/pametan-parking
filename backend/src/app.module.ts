@@ -8,11 +8,12 @@ import { UsersModule } from './users/users.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { SecurityModule } from './security/security.module.js';
 import { ParkingLotsModule } from './parking-lots/parking-lots.module.js';
+import { ParkingSpacesModule } from './parking-spaces/parking-spaces.module.js';
 
 @Module({
   imports: [ConfigModule.forRoot({
     isGlobal: true,
-  }), PrismaModule, UsersModule, AuthModule, SecurityModule, ParkingLotsModule],
+  }), PrismaModule, UsersModule, AuthModule, SecurityModule, ParkingLotsModule, ParkingSpacesModule],
   controllers: [AppController, HealthController],
   providers: [AppService],
 })
