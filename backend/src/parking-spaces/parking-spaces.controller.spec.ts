@@ -143,6 +143,7 @@ describe(
 
         expect(
           serviceMock.findAll,
+          
         ).toHaveBeenCalledWith(
           {},
         );

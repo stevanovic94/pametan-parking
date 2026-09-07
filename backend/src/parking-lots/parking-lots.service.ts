@@ -51,6 +51,21 @@ export class ParkingLotsService {
         });
     }
 
+    // i deaktivirane
+    findAllForAdmin() {
+
+        return this.prisma.parkingLot.findMany({
+
+            orderBy: [
+                {
+                    isActive: 'desc',
+                },
+                {
+                    name: 'asc',
+                },
+            ],
+        });
+    }
 
     async findOne(
         id: string,

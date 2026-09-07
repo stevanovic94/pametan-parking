@@ -1,0 +1,89 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Parking mesta</ion-title>
+
+    <ion-buttons slot="end">
+      <app-logout-button />
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  @if (!parkingLotLoaded()) {
+  <p>Učitavanje parking lokacije...</p>
+  } @else if (!parkingLot()) {
+  <p>Parking lokacija nije pronađena.</p>
+  } @else {
+
+  <h2>{{ parkingLot()!.name }}</h2>
+  <p>{{ parkingLot()!.address }}</p>
+
+  @if (parkingLot()!.isActive) {
+  <h3>
+    {{ editingId() ? 'Izmena parking mesta' : 'Novo parking mesto' }}
+  </h3>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <ion-input label="Oznaka mesta" labelPlacement="stacked" formControlName="code">
+    </ion-input>
+
+    <ion-button type="submit" [disabled]="form.invalid || isSubmitting()">
+      {{ editingId() ? 'Sačuvaj izmene' : 'Dodaj mesto' }}
+    </ion-button>
+
+    @if (editingId()) {
+    <ion-button type="button" fill="outline" (click)="cancelEdit()">
+      Otkaži
+    </ion-button>
+    }
+  </form>
+  } @else {
+  <p>
+    Parking lokacija je deaktivirana.
+    Nova parking mesta nije moguće dodavati.
+  </p>
+  }
+  }
+
+  @if (serverError()) {
+  <p>{{ serverError() }}</p>
+  }
+
+  <h2>Parking mesta</h2>
+
+  @if (isLoading()) {
+  <p>Učitavanje...</p>
+  } @else if (parkingSpaces().length === 0) {
+  <p>Na ovoj parking lokaciji trenutno nema parking mesta.</p>
+  } @else {
+  <ion-list>
+    @for (parkingSpace of parkingSpaces(); track parkingSpace.id) {
+    <ion-item>
+      <ion-label>
+        <h2>{{ parkingSpace.code }}</h2>
+
+        <p>
+          Status:
+          {{ parkingSpace.isActive ? 'Aktivno' : 'Neaktivno' }}
+        </p>
+
+        <p>
+          Zauzetost:
+          {{ parkingSpace.occupancyStatus }}
+        </p>
+      </ion-label>
+
+      <ion-button fill="outline" (click)="edit(parkingSpace)">
+        Izmeni
+      </ion-button>
+
+      <ion-button fill="outline" (click)="toggleActive(parkingSpace)">
+        {{ parkingSpace.isActive ? 'Deaktiviraj' : 'Aktiviraj' }}
+      </ion-button>
+    </ion-item>
+    }
+  </ion-list>
+  }
+
+</ion-content>

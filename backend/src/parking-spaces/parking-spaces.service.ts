@@ -141,6 +141,48 @@ export class ParkingSpacesService {
             });
     }
 
+    findAllForAdmin(
+        query: ParkingSpacesQueryDto,
+    ) {
+
+        return this.prisma.parkingSpace.findMany({
+
+            where: {
+
+                ...(query.parkingLotId
+                    ? {
+                        parkingLotId:
+                            query.parkingLotId,
+                    }
+                    : {}),
+            },
+
+            include: {
+
+                parkingLot: {
+
+                    select: {
+                        id: true,
+                        name: true,
+                        address: true,
+                        isActive: true,
+                    },
+                },
+            },
+
+            orderBy: [
+                {
+                    parkingLot: {
+                        name: 'asc',
+                    },
+                },
+                {
+                    code: 'asc',
+                },
+            ],
+        });
+    }
+
 
     async findOne(
         id: string,
