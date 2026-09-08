@@ -1,0 +1,105 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Moje rezervacije</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-button fill="outline" routerLink="/home">
+    Početna
+  </ion-button>
+
+  <h2>Moje rezervacije</h2>
+
+  @if (serverError()) {
+  <p>{{ serverError() }}</p>
+  }
+
+  @if (successMessage()) {
+  <p>{{ successMessage() }}</p>
+  }
+
+  @if (isLoading()) {
+  <p>Učitavanje...</p>
+  } @else if (reservations().length === 0) {
+  <p>Nemate rezervacija.</p>
+  } @else {
+  @for (
+  reservation of reservations();
+  track reservation.id
+  ) {
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        {{
+        reservation
+        .parkingSpace
+        .parkingLot
+        .name
+        }}
+        -
+        {{
+        reservation
+        .parkingSpace
+        .code
+        }}
+      </ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <p>
+        {{
+        reservation
+        .parkingSpace
+        .parkingLot
+        .address
+        }}
+      </p>
+
+      <p>
+        Od:
+        <strong>
+          {{
+          reservation.startAt
+          | date:'dd.MM.yyyy. HH:mm'
+          }}
+        </strong>
+      </p>
+
+      <p>
+        Do:
+        <strong>
+          {{
+          reservation.endAt
+          | date:'dd.MM.yyyy. HH:mm'
+          }}
+        </strong>
+      </p>
+
+      <p>
+        Status:
+        <strong>
+          {{
+          statusLabel(
+          reservation.status
+          )
+          }}
+        </strong>
+      </p>
+
+      @if (
+      reservation.status ===
+      'CONFIRMED'
+      ) {
+      <ion-button (click)="cancel(reservation)" [disabled]="
+                cancellingId() ===
+                reservation.id
+              ">
+        Otkaži rezervaciju
+      </ion-button>
+      }
+    </ion-card-content>
+  </ion-card>
+  }
+  }
+</ion-content>

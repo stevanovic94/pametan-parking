@@ -25,6 +25,9 @@
   <ion-button routerLink="/parking-lots">
     Pregled parkinga
   </ion-button>
+  <ion-button routerLink="/my-reservations">
+    Moje rezervacije
+  </ion-button>
 
   @if (authSession.user()?.role === 'ADMIN') {
   <ion-button routerLink="/admin">

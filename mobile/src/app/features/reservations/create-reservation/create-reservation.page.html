@@ -1,0 +1,54 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Nova rezervacija</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  @if (isLoading()) {
+  <p>Učitavanje...</p>
+  } @else if (parkingSpace()) {
+  <h2>
+    {{ parkingSpace()!.parkingLot?.name }}
+    -
+    {{ parkingSpace()!.code }}
+  </h2>
+
+  <p>
+    {{ parkingSpace()!.parkingLot?.address }}
+  </p>
+
+  <p>
+    Trenutni fizički status:
+    <strong>{{ occupancyLabel() }}</strong>
+  </p>
+
+  <p>
+    Trenutna zauzetost ne određuje da li je mesto slobodno za budući termin.
+  </p>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+
+    <ion-input type="datetime-local" label="Početak rezervacije" labelPlacement="stacked" formControlName="startAt">
+    </ion-input>
+
+    <ion-input type="datetime-local" label="Kraj rezervacije" labelPlacement="stacked" formControlName="endAt">
+    </ion-input>
+
+    <ion-button type="submit" [disabled]="form.invalid || isSubmitting()">
+      Rezerviši
+    </ion-button>
+  </form>
+
+  @if (serverError()) {
+  <p>{{ serverError() }}</p>
+  }
+
+  <ion-button fill="outline" [routerLink]="[
+        '/parking-lots',
+        parkingSpace()!.parkingLot?.id
+      ]">
+    Nazad na parking
+  </ion-button>
+  }
+</ion-content>

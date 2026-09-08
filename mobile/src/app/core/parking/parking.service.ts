@@ -138,4 +138,12 @@ export class ParkingService {
             { params },
         );
     }
+
+    getParkingSpace(
+        id: string,
+    ): Observable<ParkingSpace> {
+        return this.http.get<ParkingSpace>(
+            `${this.apiUrl}/parking-spaces/${id}`,
+        );
+    }
 }

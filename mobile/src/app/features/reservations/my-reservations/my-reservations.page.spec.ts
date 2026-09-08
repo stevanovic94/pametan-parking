@@ -15,21 +15,21 @@ import {
   it,
 } from 'vitest';
 import {
-  ParkingLotDetailsPage,
-} from './parking-lot-details.page';
+  MyReservationsPage,
+} from './my-reservations.page';
 
-describe('ParkingLotDetailsPage', () => {
+describe('MyReservationsPage', () => {
   let component:
-    ParkingLotDetailsPage;
+    MyReservationsPage;
 
   let fixture:
-    ComponentFixture<ParkingLotDetailsPage>;
+    ComponentFixture<MyReservationsPage>;
 
   beforeEach(async () => {
     await TestBed
       .configureTestingModule({
         imports: [
-          ParkingLotDetailsPage,
+          MyReservationsPage,
         ],
         providers: [
           provideHttpClient(),
@@ -40,7 +40,7 @@ describe('ParkingLotDetailsPage', () => {
 
     fixture =
       TestBed.createComponent(
-        ParkingLotDetailsPage,
+        MyReservationsPage,
       );
 
     component =

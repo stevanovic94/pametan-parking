@@ -94,4 +94,36 @@ export const routes: Routes = [
         .then(m => m.ParkingLotDetailsPage),
     canActivate: [authGuard],
   },
+  {
+    path: 'create-reservation',
+    loadComponent: () => import('./features/reservations/create-reservation/create-reservation.page').then(m => m.CreateReservationPage)
+  },
+  {
+    path: 'my-reservations',
+    loadComponent: () => import('./features/reservations/my-reservations/my-reservations.page').then(m => m.MyReservationsPage)
+  },
+  {
+    path: 'parking-spaces/:parkingSpaceId/reserve',
+    loadComponent: () =>
+      import(
+        './features/reservations/create-reservation/create-reservation.page'
+      ).then(
+        m => m.CreateReservationPage,
+      ),
+    canActivate: [
+      authGuard,
+    ],
+  },
+  {
+    path: 'my-reservations',
+    loadComponent: () =>
+      import(
+        './features/reservations/my-reservations/my-reservations.page'
+      ).then(
+        m => m.MyReservationsPage,
+      ),
+    canActivate: [
+      authGuard,
+    ],
+  },
 ];
