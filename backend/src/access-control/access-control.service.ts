@@ -1,0 +1,187 @@
+import { Injectable, NotFoundException } from "@nestjs/common";
+import {
+	ParkingAccessResult,
+	ParkingEventType,
+} from "../generated/prisma/client.js";
+import { PrismaService } from "../prisma/prisma.service.js";
+
+@Injectable()
+export class AccessControlService {
+	constructor(private readonly prisma: PrismaService) {}
+
+	async requestEntry(userId: string, parkingLotId: string) {
+		const now = new Date();
+
+		const user = await this.prisma.user.findUnique({
+			where: {
+				id: userId,
+			},
+			select: {
+				id: true,
+				isActive: true,
+			},
+		});
+
+		if (!user) {
+			throw new NotFoundException("Korisnik nije pronađen.");
+		}
+
+		const parkingLot = await this.prisma.parkingLot.findUnique({
+			where: {
+				id: parkingLotId,
+			},
+			select: {
+				id: true,
+				name: true,
+				address: true,
+				isActive: true,
+			},
+		});
+
+		if (!parkingLot) {
+			throw new NotFoundException("Parking lokacija nije pronađena.");
+		}
+
+		if (!user.isActive) {
+			return this.recordEntryDecision({
+				userId,
+				parkingLotId,
+				reservationId: null,
+				result: ParkingAccessResult.DENIED,
+				reason: "Korisnički nalog nije aktivan.",
+				occurredAt: now,
+			});
+		}
+
+		if (!parkingLot.isActive) {
+			return this.recordEntryDecision({
+				userId,
+				parkingLotId,
+				reservationId: null,
+				result: ParkingAccessResult.DENIED,
+				reason: "Parking lokacija nije aktivna.",
+				occurredAt: now,
+			});
+		}
+
+		const reservation = await this.prisma.reservation.findFirst({
+			where: {
+				userId,
+				status: "CONFIRMED",
+
+				startAt: {
+					lte: now,
+				},
+
+				endAt: {
+					gt: now,
+				},
+
+				parkingSpace: {
+					is: {
+						parkingLotId,
+						isActive: true,
+					},
+				},
+			},
+
+			select: {
+				id: true,
+				startAt: true,
+				endAt: true,
+
+				parkingSpace: {
+					select: {
+						id: true,
+						code: true,
+					},
+				},
+			},
+
+			orderBy: {
+				startAt: "desc",
+			},
+		});
+
+		if (!reservation) {
+			return this.recordEntryDecision({
+				userId,
+				parkingLotId,
+				reservationId: null,
+				result: ParkingAccessResult.DENIED,
+				reason: "Nema važeće rezervacije za ulazak u ovom trenutku.",
+				occurredAt: now,
+			});
+		}
+
+		return this.recordEntryDecision({
+			userId,
+			parkingLotId,
+			reservationId: reservation.id,
+			result: ParkingAccessResult.GRANTED,
+			reason: null,
+			occurredAt: now,
+		});
+	}
+
+	private async recordEntryDecision(data: {
+		userId: string;
+		parkingLotId: string;
+		reservationId: string | null;
+		result: ParkingAccessResult;
+		reason: string | null;
+		occurredAt: Date;
+	}) {
+		const event = await this.prisma.parkingEvent.create({
+			data: {
+				userId: data.userId,
+
+				parkingLotId: data.parkingLotId,
+
+				reservationId: data.reservationId,
+
+				type: ParkingEventType.ENTRY,
+
+				result: data.result,
+
+				reason: data.reason,
+
+				occurredAt: data.occurredAt,
+			},
+
+			include: {
+				parkingLot: {
+					select: {
+						id: true,
+						name: true,
+						address: true,
+					},
+				},
+
+				reservation: {
+					select: {
+						id: true,
+						startAt: true,
+						endAt: true,
+						status: true,
+
+						parkingSpace: {
+							select: {
+								id: true,
+								code: true,
+							},
+						},
+					},
+				},
+			},
+		});
+
+		return {
+			granted: data.result === ParkingAccessResult.GRANTED,
+
+			reason: data.reason,
+
+			event,
+		};
+	}
+}

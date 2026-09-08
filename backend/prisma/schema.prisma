@@ -31,6 +31,7 @@ model User {
   sessions            Session[]
   revokedAccessTokens RevokedAccessToken[]
   reservations        Reservation[]
+  parkingEvents       ParkingEvent[]
 }
 
 model Session {
@@ -76,7 +77,8 @@ model ParkingLot {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  spaces ParkingSpace[]
+  spaces        ParkingSpace[]
+  parkingEvents ParkingEvent[]
 
   @@index([isActive])
 }
@@ -115,6 +117,8 @@ model Reservation {
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 
+  parkingEvents ParkingEvent[]
+
   user User @relation(fields: [userId], references: [id], onDelete: Restrict)
 
   parkingSpace ParkingSpace @relation(fields: [parkingSpaceId], references: [id], onDelete: Restrict)
@@ -122,4 +126,37 @@ model Reservation {
   @@index([userId, status, startAt])
   @@index([parkingSpaceId, status, startAt, endAt])
   @@index([status, endAt])
+}
+
+enum ParkingEventType {
+  ENTRY
+  EXIT
+}
+
+enum ParkingAccessResult {
+  GRANTED
+  DENIED
+}
+
+model ParkingEvent {
+  id            String              @id @default(uuid())
+  userId        String
+  parkingLotId  String
+  reservationId String?
+  type          ParkingEventType
+  result        ParkingAccessResult
+  reason        String?             @db.VarChar(255)
+  occurredAt    DateTime            @default(now()) @db.Timestamptz(3)
+  createdAt     DateTime            @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  parkingLot ParkingLot @relation(fields: [parkingLotId], references: [id], onDelete: Restrict)
+
+  reservation Reservation? @relation(fields: [reservationId], references: [id], onDelete: Restrict)
+
+  @@index([userId, occurredAt])
+  @@index([parkingLotId, occurredAt])
+  @@index([reservationId, occurredAt])
+  @@index([result, occurredAt])
 }
