@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import {
@@ -44,11 +44,11 @@ export class ParkingLotsAdminPage {
   private readonly formBuilder = inject(FormBuilder);
   private readonly parkingService = inject(ParkingService);
 
-  parkingLots: ParkingLot[] = [];
-  editingId: string | null = null;
-  serverError = '';
-  isLoading = false;
-  isSubmitting = false;
+  readonly parkingLots = signal<ParkingLot[]>([]);
+  readonly editingId = signal<string | null>(null);
+  readonly serverError = signal('');
+  readonly isLoading = signal(false);
+  readonly isSubmitting = signal(false);
 
   readonly form = this.formBuilder.nonNullable.group({
     name: ['', [
@@ -69,19 +69,23 @@ export class ParkingLotsAdminPage {
   }
 
   loadParkingLots(): void {
-    this.isLoading = true;
-    this.serverError = '';
+    this.isLoading.set(true);
+    this.serverError.set('');
 
-    this.parkingService.getAdminParkingLots()
+    this.parkingService
+      .getAdminParkingLots()
       .pipe(finalize(() => {
-        this.isLoading = false;
+        this.isLoading.set(false);
       }))
       .subscribe({
         next: (parkingLots) => {
-          this.parkingLots = parkingLots;
+          this.parkingLots.set(parkingLots);
         },
         error: () => {
-          this.serverError = 'Učitavanje parking lokacija nije uspelo.';
+          this.parkingLots.set([]);
+          this.serverError.set(
+            'Učitavanje parking lokacija nije uspelo.',
+          );
         },
       });
   }
@@ -93,24 +97,44 @@ export class ParkingLotsAdminPage {
     }
 
     const value = this.form.getRawValue();
-    this.isSubmitting = true;
-    this.serverError = '';
+    const editingId = this.editingId();
 
-    const request$ = this.editingId
-      ? this.parkingService.updateParkingLot(this.editingId, {
+    this.isSubmitting.set(true);
+    this.serverError.set('');
+
+    if (editingId) {
+      this.parkingService
+        .updateParkingLot(editingId, {
           name: value.name,
           address: value.address,
           description: value.description,
         })
-      : this.parkingService.createParkingLot({
-          name: value.name,
-          address: value.address,
-          description: value.description,
+        .pipe(finalize(() => {
+          this.isSubmitting.set(false);
+        }))
+        .subscribe({
+          next: () => {
+            this.cancelEdit();
+            this.loadParkingLots();
+          },
+          error: () => {
+            this.serverError.set(
+              'Čuvanje parking lokacije nije uspelo.',
+            );
+          },
         });
 
-    request$
+      return;
+    }
+
+    this.parkingService
+      .createParkingLot({
+        name: value.name,
+        address: value.address,
+        description: value.description,
+      })
       .pipe(finalize(() => {
-        this.isSubmitting = false;
+        this.isSubmitting.set(false);
       }))
       .subscribe({
         next: () => {
@@ -118,13 +142,15 @@ export class ParkingLotsAdminPage {
           this.loadParkingLots();
         },
         error: () => {
-          this.serverError = 'Čuvanje parking lokacije nije uspelo.';
+          this.serverError.set(
+            'Čuvanje parking lokacije nije uspelo.',
+          );
         },
       });
   }
 
   edit(parkingLot: ParkingLot): void {
-    this.editingId = parkingLot.id;
+    this.editingId.set(parkingLot.id);
 
     this.form.setValue({
       name: parkingLot.name,
@@ -134,7 +160,7 @@ export class ParkingLotsAdminPage {
   }
 
   cancelEdit(): void {
-    this.editingId = null;
+    this.editingId.set(null);
 
     this.form.reset({
       name: '',
@@ -144,23 +170,34 @@ export class ParkingLotsAdminPage {
   }
 
   toggleActive(parkingLot: ParkingLot): void {
+    this.serverError.set('');
+
     if (parkingLot.isActive) {
-      this.parkingService.deactivateParkingLot(parkingLot.id).subscribe({
-        next: () => this.loadParkingLots(),
-        error: () => {
-          this.serverError = 'Promena statusa parking lokacije nije uspela.';
-        },
-      });
+      this.parkingService
+        .deactivateParkingLot(parkingLot.id)
+        .subscribe({
+          next: () => this.loadParkingLots(),
+          error: () => {
+            this.serverError.set(
+              'Promena statusa parking lokacije nije uspela.',
+            );
+          },
+        });
+
       return;
     }
 
-    this.parkingService.updateParkingLot(parkingLot.id, {
-      isActive: true,
-    }).subscribe({
-      next: () => this.loadParkingLots(),
-      error: () => {
-        this.serverError = 'Promena statusa parking lokacije nije uspela.';
-      },
-    });
+    this.parkingService
+      .updateParkingLot(parkingLot.id, {
+        isActive: true,
+      })
+      .subscribe({
+        next: () => this.loadParkingLots(),
+        error: () => {
+          this.serverError.set(
+            'Promena statusa parking lokacije nije uspela.',
+          );
+        },
+      });
   }
 }

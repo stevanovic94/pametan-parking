@@ -1,0 +1,70 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Parking mesta</ion-title>
+
+    <ion-buttons slot="end">
+      <app-logout-button />
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-button fill="outline" routerLink="/parking-lots">
+    Nazad na parkinge
+  </ion-button>
+
+    @if (serverError()) {
+      <p>{{ serverError() }}</p>
+    }
+
+    @if (isLoading()) {
+      <p>Učitavanje...</p>
+    } @else if (parkingLot()) {
+      <h2>{{ parkingLot()!.name }}</h2>
+      <p>{{ parkingLot()!.address }}</p>
+
+    @if (parkingLot()!.description) {
+      <p>{{ parkingLot()!.description }}</p>
+    }
+
+    <h3>Trenutno stanje</h3>
+
+    <p>
+      Slobodno:
+      <strong>{{ freeCount() }}</strong>
+    </p>
+
+    <p>
+      Zauzeto:
+      <strong>{{ occupiedCount() }}</strong>
+    </p>
+
+    <p>
+      Nepoznato:
+      <strong>{{ unknownCount() }}</strong>
+    </p>
+
+    <h3>Parking mesta</h3>
+
+    @if (parkingSpaces().length === 0) {
+      <p>Na ovoj lokaciji trenutno nema aktivnih parking mesta.</p>
+    } @else {
+      @for (parkingSpace of parkingSpaces(); track parkingSpace.id) {
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>
+              {{ parkingSpace.code }}
+            </ion-card-title>
+          </ion-card-header>
+
+          <ion-card-content>
+            Status:
+            <strong>
+              {{ occupancyLabel(parkingSpace.occupancyStatus) }}
+            </strong>
+          </ion-card-content>
+        </ion-card>
+        }
+      }
+    }
+</ion-content>

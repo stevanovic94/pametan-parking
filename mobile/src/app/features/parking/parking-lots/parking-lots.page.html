@@ -1,0 +1,66 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Parking lokacije</ion-title>
+
+    <ion-buttons slot="end">
+      <app-logout-button />
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <h2>Dostupni parkinzi</h2>
+
+  @if (serverError()) {
+  <p>{{ serverError() }}</p>
+  }
+
+  @if (isLoading()) {
+  <p>Učitavanje...</p>
+  } @else if (parkingLots().length === 0) {
+  <p>Trenutno nema aktivnih parking lokacija.</p>
+  } @else {
+  @for (parkingLot of parkingLots(); track parkingLot.id) {
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>{{ parkingLot.name }}</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <p>{{ parkingLot.address }}</p>
+
+      @if (parkingLot.description) {
+      <p>{{ parkingLot.description }}</p>
+      }
+
+      <p>
+        Ukupno mesta:
+        <strong>{{ parkingLot.spaceStats.total }}</strong>
+      </p>
+
+      <p>
+        Slobodno:
+        <strong>{{ parkingLot.spaceStats.free }}</strong>
+      </p>
+
+      <p>
+        Zauzeto:
+        <strong>{{ parkingLot.spaceStats.occupied }}</strong>
+      </p>
+
+      <p>
+        Nepoznato:
+        <strong>{{ parkingLot.spaceStats.unknown }}</strong>
+      </p>
+
+      <ion-button [routerLink]="[
+              '/parking-lots',
+              parkingLot.id
+            ]">
+        Pregled mesta
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+  }
+  }
+</ion-content>

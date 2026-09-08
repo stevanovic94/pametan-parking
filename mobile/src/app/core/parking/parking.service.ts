@@ -1,99 +1,54 @@
-import {
-    HttpClient,
-    HttpParams,
-} from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 
-import {
-    inject,
-    Injectable,
-} from '@angular/core';
+import { environment } from '../../../environments/environment';
 
-import {
-    Observable,
-} from 'rxjs';
-
-import {
-    environment,
-} from '../../../environments/environment';
-
-import {
-    CreateParkingLotRequest,
-} from './models/create-parking-lot-request.model';
-
-import {
-    CreateParkingSpaceRequest,
-} from './models/create-parking-space-request.model';
-
-import {
-    ParkingLot,
-} from './models/parking-lot.model';
-
-import {
-    ParkingSpace,
-} from './models/parking-space.model';
-
-import {
-    UpdateParkingLotRequest,
-} from './models/update-parking-lot-request.model';
-
-import {
-    UpdateParkingSpaceRequest,
-} from './models/update-parking-space-request.model';
-
+import { CreateParkingLotRequest } from './models/create-parking-lot-request.model';
+import { CreateParkingSpaceRequest } from './models/create-parking-space-request.model';
+import { ParkingLotOverview } from './models/parking-lot-overview.model';
+import { ParkingLot } from './models/parking-lot.model';
+import { ParkingSpace } from './models/parking-space.model';
+import { UpdateParkingLotRequest } from './models/update-parking-lot-request.model';
+import { UpdateParkingSpaceRequest } from './models/update-parking-space-request.model';
 
 @Injectable({
     providedIn: 'root',
 })
 export class ParkingService {
-
     private readonly http = inject(HttpClient);
-
-
     private readonly apiUrl = environment.apiUrl;
 
-
-    getParkingLots():
-        Observable<ParkingLot[]> {
-
+    getParkingLots(): Observable<ParkingLot[]> {
         return this.http.get<ParkingLot[]>(
             `${this.apiUrl}/parking-lots`,
         );
     }
 
-
-    getAdminParkingLots():
-        Observable<ParkingLot[]> {
-
+    getAdminParkingLots(): Observable<ParkingLot[]> {
         return this.http.get<ParkingLot[]>(
             `${this.apiUrl}/parking-lots/admin`,
         );
     }
 
-
     createParkingLot(
-        request:
-            CreateParkingLotRequest,
+        request: CreateParkingLotRequest,
     ): Observable<ParkingLot> {
-
         return this.http.post<ParkingLot>(
             `${this.apiUrl}/parking-lots`,
             request,
         );
     }
 
-
     updateParkingLot(
         id: string,
-        request:
-            UpdateParkingLotRequest,
+        request: UpdateParkingLotRequest,
     ): Observable<ParkingLot> {
-
         return this.http.patch<ParkingLot>(
             `${this.apiUrl}/parking-lots/${id}`,
             request,
         );
     }
-
 
     deactivateParkingLot(
         id: string,
@@ -101,7 +56,6 @@ export class ParkingService {
         message: string;
         parkingLot: ParkingLot;
     }> {
-
         return this.http.delete<{
             message: string;
             parkingLot: ParkingLot;
@@ -110,17 +64,13 @@ export class ParkingService {
         );
     }
 
-
     getAdminParkingSpaces(
         parkingLotId: string,
     ): Observable<ParkingSpace[]> {
-
-        const params =
-            new HttpParams().set(
-                'parkingLotId',
-                parkingLotId,
-            );
-
+        const params = new HttpParams().set(
+            'parkingLotId',
+            parkingLotId,
+        );
 
         return this.http.get<ParkingSpace[]>(
             `${this.apiUrl}/parking-spaces/admin`,
@@ -130,31 +80,24 @@ export class ParkingService {
         );
     }
 
-
     createParkingSpace(
-        request:
-            CreateParkingSpaceRequest,
+        request: CreateParkingSpaceRequest,
     ): Observable<ParkingSpace> {
-
         return this.http.post<ParkingSpace>(
             `${this.apiUrl}/parking-spaces`,
             request,
         );
     }
 
-
     updateParkingSpace(
         id: string,
-        request:
-            UpdateParkingSpaceRequest,
+        request: UpdateParkingSpaceRequest,
     ): Observable<ParkingSpace> {
-
         return this.http.patch<ParkingSpace>(
             `${this.apiUrl}/parking-spaces/${id}`,
             request,
         );
     }
-
 
     deactivateParkingSpace(
         id: string,
@@ -162,12 +105,37 @@ export class ParkingService {
         message: string;
         parkingSpace: ParkingSpace;
     }> {
-
         return this.http.delete<{
             message: string;
             parkingSpace: ParkingSpace;
         }>(
             `${this.apiUrl}/parking-spaces/${id}`,
+        );
+    }
+
+    getParkingOverview(): Observable<ParkingLotOverview[]> {
+        return this.http.get<ParkingLotOverview[]>(
+            `${this.apiUrl}/parking-lots/overview`,
+        );
+    }
+
+    getParkingLot(id: string): Observable<ParkingLot> {
+        return this.http.get<ParkingLot>(
+            `${this.apiUrl}/parking-lots/${id}`,
+        );
+    }
+
+    getParkingSpaces(
+        parkingLotId: string,
+    ): Observable<ParkingSpace[]> {
+        const params = new HttpParams().set(
+            'parkingLotId',
+            parkingLotId,
+        );
+
+        return this.http.get<ParkingSpace[]>(
+            `${this.apiUrl}/parking-spaces`,
+            { params },
         );
     }
 }

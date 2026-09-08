@@ -7,6 +7,7 @@ import { PrismaService } from '../prisma/prisma.service.js';
 
 import { CreateParkingLotDto } from './dto/create-parking-lot.dto.js';
 import { UpdateParkingLotDto } from './dto/update-parking-lot.dto.js';
+import { ParkingSpaceOccupancy } from '../generated/prisma/enums.js';
 
 
 @Injectable()
@@ -49,6 +50,43 @@ export class ParkingLotsService {
                 name: 'asc',
             },
         });
+    }
+
+    async findOverview() {
+        const parkingLots = await this.prisma.parkingLot.findMany({
+            where: {
+                isActive: true,
+            },
+            include: {
+                spaces: {
+                    where: {
+                        isActive: true,
+                    },
+                    select: {
+                        occupancyStatus: true,
+                    },
+                },
+            },
+            orderBy: {
+                name: 'asc',
+            },
+        });
+
+        return parkingLots.map(({ spaces, ...parkingLot }) => ({
+            ...parkingLot,
+            spaceStats: {
+                total: spaces.length,
+                free: spaces.filter(
+                    space => space.occupancyStatus === ParkingSpaceOccupancy.FREE,
+                ).length,
+                occupied: spaces.filter(
+                    space => space.occupancyStatus === ParkingSpaceOccupancy.OCCUPIED,
+                ).length,
+                unknown: spaces.filter(
+                    space => space.occupancyStatus === ParkingSpaceOccupancy.UNKNOWN,
+                ).length,
+            },
+        }));
     }
 
     // i deaktivirane

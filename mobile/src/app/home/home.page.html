@@ -1,57 +1,29 @@
-<ion-header [translucent]="true">
+<ion-header>
   <ion-toolbar>
-
-    <ion-title>
-      Smart parking
-    </ion-title>
-
-    <ion-buttons slot="end">
-      <app-logout-button />
-    </ion-buttons>
-
+    <ion-title>Smart Parking</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
+<ion-content class="ion-padding">
+  <h2>Dobrodošli</h2>
 
-      <ion-title>
-        Smart parking
-      </ion-title>
+  @if (authSession.user()) {
+  <p>
+    Prijavljeni ste kao:
+    <strong>{{ authSession.user()!.email }}</strong>
+  </p>
 
-      <ion-buttons slot="end">
-        <app-logout-button />
-      </ion-buttons>
-
-    </ion-toolbar>
-  </ion-header>
-
-  <div id="container">
-    <strong>Dobro došli u Smart Parking</strong>
-    <p>Aplikacija za pregled i rezervaciju parking mesta.<a target="_blank" rel="noopener noreferrer"
-        href="https://ionicframework.com/docs/components">UI Components</a></p>
-
-    <ion-button (click)="testProtectedEndpoint()">
-
-      Proveri sesiju
-
-    </ion-button>
-
-    @if (sessionTestResult) {
-    <p>
-      {{ sessionTestResult }}
-    </p>
-    }
-  </div>
-  @if (authSession.isAuthenticated()) {
-  <p>Prijavljen korisnik: {{ authSession.user()?.email }}</p>
-  } @else {
-  <p>Korisnik nije prijavljen.</p>
+  <p>
+    Uloga:
+    <strong>{{ authSession.user()!.role }}</strong>
+  </p>
   }
-  @if (
-  authSession.user()?.role === 'ADMIN'
-  ) {
+
+  <ion-button routerLink="/parking-lots">
+    Pregled parkinga
+  </ion-button>
+
+  @if (authSession.user()?.role === 'ADMIN') {
   <ion-button routerLink="/admin">
     Administracija
   </ion-button>

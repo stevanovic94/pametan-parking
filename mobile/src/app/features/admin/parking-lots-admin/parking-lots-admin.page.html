@@ -10,7 +10,7 @@
 
 <ion-content class="ion-padding">
   <h2>
-    {{ editingId ? 'Izmena parking lokacije' : 'Nova parking lokacija' }}
+    {{ editingId() ? 'Izmena parking lokacije' : 'Nova parking lokacija' }}
   </h2>
 
   <form [formGroup]="form" (ngSubmit)="submit()">
@@ -23,28 +23,30 @@
     <ion-textarea label="Opis" labelPlacement="stacked" formControlName="description">
     </ion-textarea>
 
-    <ion-button type="submit" [disabled]="form.invalid || isSubmitting">
-      {{ editingId ? 'Sačuvaj izmene' : 'Dodaj parking' }}
+    <ion-button type="submit" [disabled]="form.invalid || isSubmitting()">
+      {{ editingId() ? 'Sačuvaj izmene' : 'Dodaj parking' }}
     </ion-button>
 
-    @if (editingId) {
+    @if (editingId()) {
     <ion-button type="button" fill="outline" (click)="cancelEdit()">
       Otkaži
     </ion-button>
     }
   </form>
 
-  @if (serverError) {
-  <p>{{ serverError }}</p>
+  @if (serverError()) {
+  <p>{{ serverError() }}</p>
   }
 
   <h2>Postojeće lokacije</h2>
 
-  @if (isLoading) {
+  @if (isLoading()) {
   <p>Učitavanje...</p>
+  } @else if (parkingLots().length === 0) {
+  <p>Trenutno nema parking lokacija.</p>
   } @else {
   <ion-list>
-    @for (parkingLot of parkingLots; track parkingLot.id) {
+    @for (parkingLot of parkingLots(); track parkingLot.id) {
     <ion-item>
       <ion-label>
         <h2>{{ parkingLot.name }}</h2>

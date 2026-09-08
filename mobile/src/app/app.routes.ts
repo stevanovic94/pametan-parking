@@ -72,4 +72,26 @@ export const routes: Routes = [
       roles: ['ADMIN'],
     },
   },
+  {
+    path: 'parking-lots',
+    loadComponent: () => import('./features/parking/parking-lots/parking-lots.page').then(m => m.ParkingLotsPage)
+  },
+  {
+    path: 'parking-lot-details',
+    loadComponent: () => import('./features/parking/parking-lot-details/parking-lot-details.page').then(m => m.ParkingLotDetailsPage)
+  },
+  {
+    path: 'parking-lots',
+    loadComponent: () =>
+      import('./features/parking/parking-lots/parking-lots.page')
+        .then(m => m.ParkingLotsPage),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'parking-lots/:parkingLotId',
+    loadComponent: () =>
+      import('./features/parking/parking-lot-details/parking-lot-details.page')
+        .then(m => m.ParkingLotDetailsPage),
+    canActivate: [authGuard],
+  },
 ];

@@ -8,7 +8,6 @@ import {
     Post,
     UseGuards,
 } from '@nestjs/common';
-
 import { Roles } from '../security/decorators/roles.decorator.js';
 import { JwtAuthGuard } from '../security/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../security/guards/roles.guard.js';
@@ -19,13 +18,16 @@ import { ParkingLotsService } from './parking-lots.service.js';
 @Controller('parking-lots')
 @UseGuards(JwtAuthGuard)
 export class ParkingLotsController {
-    constructor(
-        private readonly parkingLotsService: ParkingLotsService,
-    ) { }
+    constructor(private readonly parkingLotsService: ParkingLotsService) { }
 
     @Get()
     findAll() {
         return this.parkingLotsService.findAll();
+    }
+
+    @Get('overview')
+    findOverview() {
+        return this.parkingLotsService.findOverview();
     }
 
     @Get('admin')
@@ -50,7 +52,10 @@ export class ParkingLotsController {
     @Patch(':id')
     @UseGuards(RolesGuard)
     @Roles('ADMIN')
-    update(@Param('id') id: string, @Body() dto: UpdateParkingLotDto) {
+    update(
+        @Param('id') id: string,
+        @Body() dto: UpdateParkingLotDto,
+    ) {
         return this.parkingLotsService.update(id, dto);
     }
 
