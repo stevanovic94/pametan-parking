@@ -38,4 +38,38 @@ describe("ParkingEventsService", () => {
 
 		request.flush([]);
 	});
+
+	it("should load staff parking events without filters", () => {
+		service.getAllForStaff().subscribe();
+
+		const request = httpTesting.expectOne(
+			`${environment.apiUrl}/parking-events`,
+		);
+
+		expect(request.request.method).toBe("GET");
+
+		request.flush([]);
+	});
+
+	it("should send staff parking event filters", () => {
+		service
+			.getAllForStaff({
+				parkingLotId: "parking-1",
+				type: "ENTRY",
+				result: "DENIED",
+			})
+			.subscribe();
+
+		const request = httpTesting.expectOne(
+			(req) =>
+				req.url === `${environment.apiUrl}/parking-events` &&
+				req.params.get("parkingLotId") === "parking-1" &&
+				req.params.get("type") === "ENTRY" &&
+				req.params.get("result") === "DENIED",
+		);
+
+		expect(request.request.method).toBe("GET");
+
+		request.flush([]);
+	});
 });

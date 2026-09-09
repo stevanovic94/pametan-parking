@@ -1,0 +1,168 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>
+      Parking događaji
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-button
+    fill="outline"
+    routerLink="/operator"
+  >
+    Operaterski panel
+  </ion-button>
+
+  <h2>Istorija parking događaja</h2>
+
+  <form
+    [formGroup]="filterForm"
+    (ngSubmit)="applyFilters()"
+  >
+    <ion-item>
+      <ion-label>
+        Parking
+      </ion-label>
+
+      <ion-select
+        formControlName="parkingLotId"
+        placeholder="Svi parkinzi"
+      >
+        <ion-select-option value="">
+          Svi parkinzi
+        </ion-select-option>
+
+        @for ( parkingLot of parkingLots(); track parkingLot.id ) {
+        <ion-select-option [value]="parkingLot.id">
+          {{ parkingLot.name }}
+        </ion-select-option>
+        }
+      </ion-select>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>
+        Tip događaja
+      </ion-label>
+
+      <ion-select
+        formControlName="type"
+        placeholder="Svi događaji"
+      >
+        <ion-select-option value="">
+          Svi događaji
+        </ion-select-option>
+
+        <ion-select-option value="ENTRY">
+          Ulazak
+        </ion-select-option>
+
+        <ion-select-option value="EXIT">
+          Izlazak
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>
+        Rezultat
+      </ion-label>
+
+      <ion-select
+        formControlName="result"
+        placeholder="Svi rezultati"
+      >
+        <ion-select-option value="">
+          Svi rezultati
+        </ion-select-option>
+
+        <ion-select-option value="GRANTED">
+          Odobren
+        </ion-select-option>
+
+        <ion-select-option value="DENIED">
+          Odbijen
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-button type="submit">
+      Primeni filtere
+    </ion-button>
+
+    <ion-button
+      type="button"
+      fill="outline"
+      (click)="clearFilters()"
+    >
+      Obriši filtere
+    </ion-button>
+  </form>
+
+  @if (serverError()) {
+  <p>{{ serverError() }}</p>
+  } @if (isLoading()) {
+  <p>Učitavanje...</p>
+  } @else if ( parkingEvents().length === 0 ) {
+  <p>
+    Nema parking događaja koji odgovaraju izabranim filterima.
+  </p>
+  } @else { @for ( parkingEvent of parkingEvents(); track parkingEvent.id ) {
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        {{ typeLabel( parkingEvent.type ) }} - {{ resultLabel(
+        parkingEvent.result ) }}
+      </ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <p>
+        Korisnik:
+        <strong>
+          {{ parkingEvent.user.firstName }} {{ parkingEvent.user.lastName }}
+        </strong>
+      </p>
+
+      <p>
+        Email: {{ parkingEvent.user.email }}
+      </p>
+
+      <p>
+        Parking:
+        <strong>
+          {{ parkingEvent.parkingLot.name }}
+        </strong>
+      </p>
+
+      <p>
+        Vreme:
+        <strong>
+          {{ parkingEvent.occurredAt | date:'dd.MM.yyyy. HH:mm:ss' }}
+        </strong>
+      </p>
+
+      @if ( parkingEvent.reservation ) {
+      <p>
+        Parking mesto:
+        <strong>
+          {{ parkingEvent .reservation .parkingSpace .code }}
+        </strong>
+      </p>
+
+      <p>
+        Status rezervacije: {{ parkingEvent .reservation .status }}
+      </p>
+      } @if ( parkingEvent.result === 'DENIED' ) {
+      <p>
+        Razlog:
+        <strong>
+          {{ parkingEvent.reason ?? 'Pristup nije dozvoljen.' }}
+        </strong>
+      </p>
+      }
+    </ion-card-content>
+  </ion-card>
+  } }
+</ion-content>

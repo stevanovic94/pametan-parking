@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Administracija</ion-title>
+    <ion-title>Operaterski panel</ion-title>
 
     <ion-buttons slot="end">
       <app-logout-button />
@@ -9,24 +9,31 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  <h2>Administratorska kontrolna tabla</h2>
+  <h2>Operaterska kontrolna tabla</h2>
 
   <p>
-    Administracija sistema i pristup operaterskim funkcijama.
+    Pregled i operativno upravljanje sistemom pametnog parkinga.
   </p>
 
   <ion-button
     expand="block"
-    routerLink="/admin/parking-lots"
+    routerLink="/operator/reservations"
   >
-    Upravljanje parkingom
+    Pregled rezervacija
   </ion-button>
 
   <ion-button
     expand="block"
-    routerLink="/operator"
+    routerLink="/operator/parking-events"
   >
-    Operaterski panel
+    Parking događaji
+  </ion-button>
+
+  <ion-button
+    expand="block"
+    routerLink="/operator/parking-occupancy"
+  >
+    Fizičko stanje parkinga
   </ion-button>
 
   <ion-button

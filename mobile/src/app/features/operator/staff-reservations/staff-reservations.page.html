@@ -1,0 +1,145 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>
+      Pregled rezervacija
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-button
+    fill="outline"
+    routerLink="/operator"
+  >
+    Operaterski panel
+  </ion-button>
+
+  <h2>Sve rezervacije</h2>
+
+  <form
+    [formGroup]="filterForm"
+    (ngSubmit)="applyFilters()"
+  >
+    <ion-item>
+      <ion-label>
+        Parking
+      </ion-label>
+
+      <ion-select
+        formControlName="parkingLotId"
+        placeholder="Svi parkinzi"
+      >
+        <ion-select-option value="">
+          Svi parkinzi
+        </ion-select-option>
+
+        @for ( parkingLot of parkingLots(); track parkingLot.id ) {
+        <ion-select-option [value]="parkingLot.id">
+          {{ parkingLot.name }}
+        </ion-select-option>
+        }
+      </ion-select>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>
+        Status
+      </ion-label>
+
+      <ion-select
+        formControlName="status"
+        placeholder="Svi statusi"
+      >
+        <ion-select-option value="">
+          Svi statusi
+        </ion-select-option>
+
+        <ion-select-option value="CONFIRMED">
+          Potvrđene
+        </ion-select-option>
+
+        <ion-select-option value="CANCELLED">
+          Otkazane
+        </ion-select-option>
+
+        <ion-select-option value="COMPLETED">
+          Završene
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-button type="submit">
+      Primeni filtere
+    </ion-button>
+
+    <ion-button
+      type="button"
+      fill="outline"
+      (click)="clearFilters()"
+    >
+      Obriši filtere
+    </ion-button>
+  </form>
+
+  @if (serverError()) {
+  <p>{{ serverError() }}</p>
+  } @if (isLoading()) {
+  <p>Učitavanje...</p>
+  } @else if ( reservations().length === 0 ) {
+  <p>
+    Nema rezervacija koje odgovaraju izabranim filterima.
+  </p>
+  } @else { @for ( reservation of reservations(); track reservation.id ) {
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        {{ reservation.user.firstName }} {{ reservation.user.lastName }}
+      </ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <p>
+        Email:
+        <strong>
+          {{ reservation.user.email }}
+        </strong>
+      </p>
+
+      <p>
+        Parking:
+        <strong>
+          {{ reservation .parkingSpace .parkingLot .name }}
+        </strong>
+      </p>
+
+      <p>
+        Parking mesto:
+        <strong>
+          {{ reservation .parkingSpace .code }}
+        </strong>
+      </p>
+
+      <p>
+        Od:
+        <strong>
+          {{ reservation.startAt | date:'dd.MM.yyyy. HH:mm' }}
+        </strong>
+      </p>
+
+      <p>
+        Do:
+        <strong>
+          {{ reservation.endAt | date:'dd.MM.yyyy. HH:mm' }}
+        </strong>
+      </p>
+
+      <p>
+        Status:
+        <strong>
+          {{ statusLabel( reservation.status ) }}
+        </strong>
+      </p>
+    </ion-card-content>
+  </ion-card>
+  } }
+</ion-content>

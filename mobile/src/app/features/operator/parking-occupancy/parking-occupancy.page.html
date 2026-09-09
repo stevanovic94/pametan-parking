@@ -1,0 +1,133 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>
+      Fizičko stanje parkinga
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-button
+    fill="outline"
+    routerLink="/operator"
+  >
+    Operaterski panel
+  </ion-button>
+
+  <h2>
+    Upravljanje fizičkim stanjem
+  </h2>
+
+  <p>
+    Izaberi parking lokaciju, a zatim promeni stanje parking mesta.
+  </p>
+
+  <form [formGroup]="filterForm">
+    <ion-item>
+      <ion-label>
+        Parking
+      </ion-label>
+
+      <ion-select
+        formControlName="parkingLotId"
+        placeholder="Izaberi parking"
+        (ionChange)="parkingLotChanged()"
+      >
+        <ion-select-option value="">
+          Izaberi parking
+        </ion-select-option>
+
+        @for ( parkingLot of parkingLots(); track parkingLot.id ) {
+        <ion-select-option [value]="parkingLot.id">
+          {{ parkingLot.name }}
+        </ion-select-option>
+        }
+      </ion-select>
+    </ion-item>
+  </form>
+
+  @if (serverError()) {
+  <p>
+    {{ serverError() }}
+  </p>
+  } @if (successMessage()) {
+  <p>
+    {{ successMessage() }}
+  </p>
+  } @if (isLoading()) {
+  <p>
+    Učitavanje...
+  </p>
+  } @else if ( filterForm.controls.parkingLotId.value && parkingSpaces().length
+  === 0 ) {
+  <p>
+    Ovaj parking nema aktivnih parking mesta.
+  </p>
+  } @for ( parkingSpace of parkingSpaces(); track parkingSpace.id ) {
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        Parking mesto {{ parkingSpace.code }}
+      </ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <p>
+        Trenutno stanje:
+        <strong>
+          {{ occupancyLabel( parkingSpace.occupancyStatus ) }}
+        </strong>
+      </p>
+
+      <ion-button
+        size="small"
+        [disabled]="
+            updatingId() === parkingSpace.id ||
+            parkingSpace.occupancyStatus === 'FREE'
+          "
+        (click)="
+            setOccupancy(
+              parkingSpace,
+              'FREE'
+            )
+          "
+      >
+        Slobodno
+      </ion-button>
+
+      <ion-button
+        size="small"
+        [disabled]="
+            updatingId() === parkingSpace.id ||
+            parkingSpace.occupancyStatus === 'OCCUPIED'
+          "
+        (click)="
+            setOccupancy(
+              parkingSpace,
+              'OCCUPIED'
+            )
+          "
+      >
+        Zauzeto
+      </ion-button>
+
+      <ion-button
+        size="small"
+        fill="outline"
+        [disabled]="
+            updatingId() === parkingSpace.id ||
+            parkingSpace.occupancyStatus === 'UNKNOWN'
+          "
+        (click)="
+            setOccupancy(
+              parkingSpace,
+              'UNKNOWN'
+            )
+          "
+      >
+        Nepoznato
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+  }
+</ion-content>

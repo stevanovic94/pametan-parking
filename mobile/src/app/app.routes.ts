@@ -8,11 +8,13 @@ export const routes: Routes = [
 		loadComponent: () => import("./home/home.page").then((m) => m.HomePage),
 		canActivate: [authGuard],
 	},
+
 	{
 		path: "",
 		redirectTo: "home",
 		pathMatch: "full",
 	},
+
 	{
 		path: "login",
 		loadComponent: () =>
@@ -20,6 +22,7 @@ export const routes: Routes = [
 				(m) => m.LoginPage,
 			),
 	},
+
 	{
 		path: "register",
 		loadComponent: () =>
@@ -27,6 +30,7 @@ export const routes: Routes = [
 				(m) => m.RegisterPage,
 			),
 	},
+
 	{
 		path: "forbidden",
 		loadComponent: () =>
@@ -34,6 +38,100 @@ export const routes: Routes = [
 				(m) => m.ForbiddenPage,
 			),
 	},
+
+	{
+		path: "parking-lots",
+		loadComponent: () =>
+			import("./features/parking/parking-lots/parking-lots.page").then(
+				(m) => m.ParkingLotsPage,
+			),
+		canActivate: [authGuard],
+	},
+
+	{
+		path: "parking-lots/:parkingLotId",
+		loadComponent: () =>
+			import(
+				"./features/parking/parking-lot-details/parking-lot-details.page"
+			).then((m) => m.ParkingLotDetailsPage),
+		canActivate: [authGuard],
+	},
+
+	{
+		path: "parking-spaces/:parkingSpaceId/reserve",
+		loadComponent: () =>
+			import(
+				"./features/reservations/create-reservation/create-reservation.page"
+			).then((m) => m.CreateReservationPage),
+		canActivate: [authGuard],
+	},
+
+	{
+		path: "my-reservations",
+		loadComponent: () =>
+			import(
+				"./features/reservations/my-reservations/my-reservations.page"
+			).then((m) => m.MyReservationsPage),
+		canActivate: [authGuard],
+	},
+
+	{
+		path: "parking-events/my",
+		loadComponent: () =>
+			import(
+				"./features/parking-events/my-parking-events/my-parking-events.page"
+			).then((m) => m.MyParkingEventsPage),
+		canActivate: [authGuard],
+	},
+
+	{
+		path: "operator",
+		loadComponent: () =>
+			import(
+				"./features/operator/operator-dashboard/operator-dashboard.page"
+			).then((m) => m.OperatorDashboardPage),
+		canActivate: [authGuard, roleGuard],
+		data: {
+			roles: ["OPERATOR", "ADMIN"],
+		},
+	},
+
+	{
+		path: "operator/reservations",
+		loadComponent: () =>
+			import(
+				"./features/operator/staff-reservations/staff-reservations.page"
+			).then((m) => m.StaffReservationsPage),
+		canActivate: [authGuard, roleGuard],
+		data: {
+			roles: ["OPERATOR", "ADMIN"],
+		},
+	},
+
+	{
+		path: "operator/parking-events",
+		loadComponent: () =>
+			import(
+				"./features/operator/staff-parking-events/staff-parking-events.page"
+			).then((m) => m.StaffParkingEventsPage),
+		canActivate: [authGuard, roleGuard],
+		data: {
+			roles: ["OPERATOR", "ADMIN"],
+		},
+	},
+
+	{
+		path: "operator/parking-occupancy",
+		loadComponent: () =>
+			import(
+				"./features/operator/parking-occupancy/parking-occupancy.page"
+			).then((m) => m.ParkingOccupancyPage),
+		canActivate: [authGuard, roleGuard],
+		data: {
+			roles: ["OPERATOR", "ADMIN"],
+		},
+	},
+
 	{
 		path: "admin",
 		loadComponent: () =>
@@ -45,6 +143,7 @@ export const routes: Routes = [
 			roles: ["ADMIN"],
 		},
 	},
+
 	{
 		path: "admin/parking-lots",
 		loadComponent: () =>
@@ -56,6 +155,7 @@ export const routes: Routes = [
 			roles: ["ADMIN"],
 		},
 	},
+
 	{
 		path: "admin/parking-lots/:parkingLotId/spaces",
 		loadComponent: () =>
@@ -66,80 +166,5 @@ export const routes: Routes = [
 		data: {
 			roles: ["ADMIN"],
 		},
-	},
-	{
-		path: "parking-lots",
-		loadComponent: () =>
-			import("./features/parking/parking-lots/parking-lots.page").then(
-				(m) => m.ParkingLotsPage,
-			),
-	},
-	{
-		path: "parking-lot-details",
-		loadComponent: () =>
-			import(
-				"./features/parking/parking-lot-details/parking-lot-details.page"
-			).then((m) => m.ParkingLotDetailsPage),
-	},
-	{
-		path: "parking-lots",
-		loadComponent: () =>
-			import("./features/parking/parking-lots/parking-lots.page").then(
-				(m) => m.ParkingLotsPage,
-			),
-		canActivate: [authGuard],
-	},
-	{
-		path: "parking-lots/:parkingLotId",
-		loadComponent: () =>
-			import(
-				"./features/parking/parking-lot-details/parking-lot-details.page"
-			).then((m) => m.ParkingLotDetailsPage),
-		canActivate: [authGuard],
-	},
-	{
-		path: "create-reservation",
-		loadComponent: () =>
-			import(
-				"./features/reservations/create-reservation/create-reservation.page"
-			).then((m) => m.CreateReservationPage),
-	},
-	{
-		path: "my-reservations",
-		loadComponent: () =>
-			import(
-				"./features/reservations/my-reservations/my-reservations.page"
-			).then((m) => m.MyReservationsPage),
-	},
-	{
-		path: "parking-spaces/:parkingSpaceId/reserve",
-		loadComponent: () =>
-			import(
-				"./features/reservations/create-reservation/create-reservation.page"
-			).then((m) => m.CreateReservationPage),
-		canActivate: [authGuard],
-	},
-	{
-		path: "my-reservations",
-		loadComponent: () =>
-			import(
-				"./features/reservations/my-reservations/my-reservations.page"
-			).then((m) => m.MyReservationsPage),
-		canActivate: [authGuard],
-	},
-	{
-		path: "my-parking-events",
-		loadComponent: () =>
-			import(
-				"./features/parking-events/my-parking-events/my-parking-events.page"
-			).then((m) => m.MyParkingEventsPage),
-	},
-	{
-		path: "parking-events/my",
-		loadComponent: () =>
-			import(
-				"./features/parking-events/my-parking-events/my-parking-events.page"
-			).then((m) => m.MyParkingEventsPage),
-		canActivate: [authGuard],
 	},
 ];

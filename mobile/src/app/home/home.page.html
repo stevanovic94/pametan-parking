@@ -32,7 +32,13 @@
     Istorija pristupa
   </ion-button>
 
-  @if (authSession.user()?.role === 'ADMIN') {
+  @if ( authSession.user()?.role === 'OPERATOR' || authSession.user()?.role ===
+  'ADMIN' ) {
+  <ion-button routerLink="/operator">
+    Operaterski panel
+  </ion-button>
+  }
+   @if (authSession.user()?.role === 'ADMIN') {
   <ion-button routerLink="/admin">
     Administracija
   </ion-button>
