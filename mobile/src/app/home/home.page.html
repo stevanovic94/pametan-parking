@@ -28,6 +28,9 @@
   <ion-button routerLink="/my-reservations">
     Moje rezervacije
   </ion-button>
+  <ion-button routerLink="/parking-events/my">
+    Istorija pristupa
+  </ion-button>
 
   @if (authSession.user()?.role === 'ADMIN') {
   <ion-button routerLink="/admin">

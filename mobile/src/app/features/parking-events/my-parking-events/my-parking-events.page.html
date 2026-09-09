@@ -1,0 +1,71 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Istorija pristupa</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-button
+    fill="outline"
+    routerLink="/home"
+  >
+    Početna
+  </ion-button>
+
+  <h2>Istorija pristupa parkingu</h2>
+
+  @if (serverError()) {
+  <p>{{ serverError() }}</p>
+  } @if (isLoading()) {
+  <p>Učitavanje...</p>
+  } @else if (parkingEvents().length === 0) {
+  <p>
+    Još nemate evidentiranih parking događaja.
+  </p>
+  } @else { @for ( parkingEvent of parkingEvents(); track parkingEvent.id ) {
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>
+        {{ typeLabel(parkingEvent.type) }} - {{ resultLabel(parkingEvent.result)
+        }}
+      </ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <p>
+        Parking:
+        <strong>
+          {{ parkingEvent.parkingLot.name }}
+        </strong>
+      </p>
+
+      <p>
+        Adresa: {{ parkingEvent.parkingLot.address }}
+      </p>
+
+      <p>
+        Vreme:
+        <strong>
+          {{ parkingEvent.occurredAt | date:'dd.MM.yyyy. HH:mm:ss' }}
+        </strong>
+      </p>
+
+      @if ( parkingEvent.reservation ) {
+      <p>
+        Parking mesto:
+        <strong>
+          {{ parkingEvent .reservation .parkingSpace .code }}
+        </strong>
+      </p>
+      } @if ( parkingEvent.result === 'DENIED' ) {
+      <p>
+        Razlog:
+        <strong>
+          {{ parkingEvent.reason ?? 'Pristup nije dozvoljen.' }}
+        </strong>
+      </p>
+      }
+    </ion-card-content>
+  </ion-card>
+  } }
+</ion-content>
