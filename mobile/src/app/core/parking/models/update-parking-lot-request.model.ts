@@ -1,6 +1,8 @@
 export interface UpdateParkingLotRequest {
-    name?: string;
-    address?: string;
-    description?: string;
-    isActive?: boolean;
+	name?: string;
+	address?: string;
+	description?: string;
+	latitude?: number;
+	longitude?: number;
+	isActive?: boolean;
 }

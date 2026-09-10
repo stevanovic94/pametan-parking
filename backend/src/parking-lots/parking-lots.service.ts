@@ -1,239 +1,221 @@
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service.js";
+import { CreateParkingLotDto } from "./dto/create-parking-lot.dto.js";
+import { UpdateParkingLotDto } from "./dto/update-parking-lot.dto.js";
 import {
-    Injectable,
-    NotFoundException,
-} from '@nestjs/common';
-
-import { PrismaService } from '../prisma/prisma.service.js';
-
-import { CreateParkingLotDto } from './dto/create-parking-lot.dto.js';
-import { UpdateParkingLotDto } from './dto/update-parking-lot.dto.js';
-import { ParkingSpaceOccupancy } from '../generated/prisma/enums.js';
-
+	ParkingSpaceOccupancy,
+	ReservationStatus,
+} from "../generated/prisma/enums.js";
 
 @Injectable()
 export class ParkingLotsService {
+	constructor(private readonly prisma: PrismaService) {}
 
-    constructor(
-        private readonly prisma:
-            PrismaService,
-    ) { }
+	create(dto: CreateParkingLotDto) {
+		return this.prisma.parkingLot.create({
+			data: {
+				name: dto.name.trim(),
+				address: dto.address.trim(),
+				description: dto.description?.trim() || null,
+				latitude: dto.latitude,
+				longitude: dto.longitude,
+			},
+		});
+	}
 
+	findAll() {
+		return this.prisma.parkingLot.findMany({
+			where: {
+				isActive: true,
+			},
+			orderBy: {
+				name: "asc",
+			},
+		});
+	}
 
-    create(
-        dto: CreateParkingLotDto,
-    ) {
+	findOverview() {
+		return this.buildOverview(false);
+	}
 
-        return this.prisma.parkingLot.create({
-            data: {
-                name:
-                    dto.name.trim(),
+	findMapOverview() {
+		return this.buildOverview(true);
+	}
 
-                address:
-                    dto.address.trim(),
+	findAllForAdmin() {
+		return this.prisma.parkingLot.findMany({
+			orderBy: [
+				{
+					isActive: "desc",
+				},
+				{
+					name: "asc",
+				},
+			],
+		});
+	}
 
-                description:
-                    dto.description?.trim() ||
-                    null,
-            },
-        });
-    }
+	async findOne(id: string) {
+		const parkingLot = await this.prisma.parkingLot.findFirst({
+			where: {
+				id,
+				isActive: true,
+			},
+		});
 
+		if (!parkingLot) {
+			throw new NotFoundException("Parking lokacija nije pronađena.");
+		}
 
-    findAll() {
+		return parkingLot;
+	}
 
-        return this.prisma.parkingLot.findMany({
-            where: {
-                isActive: true,
-            },
+	async update(id: string, dto: UpdateParkingLotDto) {
+		await this.findExistingById(id);
 
-            orderBy: {
-                name: 'asc',
-            },
-        });
-    }
+		const data = {
+			...(dto.name !== undefined
+				? {
+						name: dto.name.trim(),
+					}
+				: {}),
+			...(dto.address !== undefined
+				? {
+						address: dto.address.trim(),
+					}
+				: {}),
+			...(dto.description !== undefined
+				? {
+						description: dto.description.trim() || null,
+					}
+				: {}),
+			...(dto.latitude !== undefined
+				? {
+						latitude: dto.latitude,
+					}
+				: {}),
+			...(dto.longitude !== undefined
+				? {
+						longitude: dto.longitude,
+					}
+				: {}),
+			...(dto.isActive !== undefined
+				? {
+						isActive: dto.isActive,
+					}
+				: {}),
+		};
 
-    async findOverview() {
-        const parkingLots = await this.prisma.parkingLot.findMany({
-            where: {
-                isActive: true,
-            },
-            include: {
-                spaces: {
-                    where: {
-                        isActive: true,
-                    },
-                    select: {
-                        occupancyStatus: true,
-                    },
-                },
-            },
-            orderBy: {
-                name: 'asc',
-            },
-        });
+		return this.prisma.parkingLot.update({
+			where: {
+				id,
+			},
+			data,
+		});
+	}
 
-        return parkingLots.map(({ spaces, ...parkingLot }) => ({
-            ...parkingLot,
-            spaceStats: {
-                total: spaces.length,
-                free: spaces.filter(
-                    space => space.occupancyStatus === ParkingSpaceOccupancy.FREE,
-                ).length,
-                occupied: spaces.filter(
-                    space => space.occupancyStatus === ParkingSpaceOccupancy.OCCUPIED,
-                ).length,
-                unknown: spaces.filter(
-                    space => space.occupancyStatus === ParkingSpaceOccupancy.UNKNOWN,
-                ).length,
-            },
-        }));
-    }
+	async deactivate(id: string) {
+		await this.findExistingById(id);
 
-    // i deaktivirane
-    findAllForAdmin() {
+		const parkingLot = await this.prisma.parkingLot.update({
+			where: {
+				id,
+			},
+			data: {
+				isActive: false,
+			},
+		});
 
-        return this.prisma.parkingLot.findMany({
+		return {
+			message: "Parking lokacija je deaktivirana.",
+			parkingLot,
+		};
+	}
 
-            orderBy: [
-                {
-                    isActive: 'desc',
-                },
-                {
-                    name: 'asc',
-                },
-            ],
-        });
-    }
+	private async buildOverview(includeInactive: boolean) {
+		const now = new Date();
 
-    async findOne(
-        id: string,
-    ) {
+		const parkingLots = await this.prisma.parkingLot.findMany({
+			where: includeInactive
+				? {}
+				: {
+						isActive: true,
+					},
+			include: {
+				spaces: {
+					where: {
+						isActive: true,
+					},
+					select: {
+						occupancyStatus: true,
+						reservations: {
+							where: {
+								status: ReservationStatus.CONFIRMED,
+								startAt: {
+									lte: now,
+								},
+								endAt: {
+									gt: now,
+								},
+							},
+							select: {
+								id: true,
+							},
+							take: 1,
+						},
+					},
+				},
+			},
+			orderBy: {
+				name: "asc",
+			},
+		});
 
-        const parkingLot =
-            await this.prisma.parkingLot
-                .findFirst({
-                    where: {
-                        id,
-                        isActive: true,
-                    },
-                });
+		return parkingLots.map(({ spaces, ...parkingLot }) => {
+			const reserved = spaces.filter(
+				(space) =>
+					space.occupancyStatus === ParkingSpaceOccupancy.FREE &&
+					space.reservations.length > 0,
+			).length;
 
+			const free = spaces.filter(
+				(space) =>
+					space.occupancyStatus === ParkingSpaceOccupancy.FREE &&
+					space.reservations.length === 0,
+			).length;
 
-        if (!parkingLot) {
+			const occupied = spaces.filter(
+				(space) => space.occupancyStatus === ParkingSpaceOccupancy.OCCUPIED,
+			).length;
 
-            throw new NotFoundException(
-                'Parking lokacija nije pronađena.',
-            );
-        }
+			const unknown = spaces.filter(
+				(space) => space.occupancyStatus === ParkingSpaceOccupancy.UNKNOWN,
+			).length;
 
+			return {
+				...parkingLot,
+				spaceStats: {
+					total: spaces.length,
+					free,
+					reserved,
+					occupied,
+					unknown,
+				},
+			};
+		});
+	}
 
-        return parkingLot;
-    }
+	private async findExistingById(id: string) {
+		const parkingLot = await this.prisma.parkingLot.findUnique({
+			where: {
+				id,
+			},
+		});
 
+		if (!parkingLot) {
+			throw new NotFoundException("Parking lokacija nije pronađena.");
+		}
 
-    async update(
-        id: string,
-        dto: UpdateParkingLotDto,
-    ) {
-
-        await this.findExistingById(id);
-
-
-        const data = {
-
-            ...(dto.name !== undefined
-                ? {
-                    name:
-                        dto.name.trim(),
-                }
-                : {}),
-
-
-            ...(dto.address !== undefined
-                ? {
-                    address:
-                        dto.address.trim(),
-                }
-                : {}),
-
-
-            ...(dto.description !== undefined
-                ? {
-                    description:
-                        dto.description.trim() ||
-                        null,
-                }
-                : {}),
-
-
-            ...(dto.isActive !== undefined
-                ? {
-                    isActive:
-                        dto.isActive,
-                }
-                : {}),
-        };
-
-
-        return this.prisma.parkingLot.update({
-            where: {
-                id,
-            },
-
-            data,
-        });
-    }
-
-
-    async deactivate(
-        id: string,
-    ) {
-
-        await this.findExistingById(id);
-
-
-        const parkingLot =
-            await this.prisma.parkingLot.update({
-                where: {
-                    id,
-                },
-
-                data: {
-                    isActive: false,
-                },
-            });
-
-
-        return {
-            message:
-                'Parking lokacija je deaktivirana.',
-
-            parkingLot,
-        };
-    }
-
-
-    private async findExistingById(
-        id: string,
-    ) {
-
-        const parkingLot =
-            await this.prisma.parkingLot
-                .findUnique({
-                    where: {
-                        id,
-                    },
-                });
-
-
-        if (!parkingLot) {
-
-            throw new NotFoundException(
-                'Parking lokacija nije pronađena.',
-            );
-        }
-
-
-        return parkingLot;
-    }
+		return parkingLot;
+	}
 }

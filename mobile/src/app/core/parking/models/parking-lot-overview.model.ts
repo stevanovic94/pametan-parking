@@ -1,12 +1,11 @@
-import { ParkingLot } from './parking-lot.model';
-
-export interface ParkingLotSpaceStats {
-    total: number;
-    free: number;
-    occupied: number;
-    unknown: number;
-}
+import { ParkingLot } from "./parking-lot.model";
 
 export interface ParkingLotOverview extends ParkingLot {
-    spaceStats: ParkingLotSpaceStats;
+	spaceStats: {
+		total: number;
+		free: number;
+		reserved: number;
+		occupied: number;
+		unknown: number;
+	};
 }

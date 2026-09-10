@@ -1,69 +1,32 @@
-import {
-  ComponentFixture,
-  TestBed,
-} from '@angular/core/testing';
+import { ComponentFixture, TestBed } from "@angular/core/testing";
 
-import {
-  provideHttpClient,
-} from '@angular/common/http';
+import { provideHttpClient } from "@angular/common/http";
 
-import {
-  provideRouter,
-} from '@angular/router';
+import { provideRouter } from "@angular/router";
 
-import {
-  beforeEach,
-  describe,
-  expect,
-  it,
-} from 'vitest';
+import { beforeEach, describe, expect, it } from "vitest";
 
-import {
-  HomePage,
-} from './home.page';
+import { HomePage } from "./home.page";
 
+describe("HomePage", () => {
+	let component: HomePage;
+	let fixture: ComponentFixture<HomePage>;
 
-describe('HomePage', () => {
+	beforeEach(async () => {
+		await TestBed.configureTestingModule({
+			imports: [HomePage],
 
-  let component: HomePage;
-  let fixture: ComponentFixture<HomePage>;
+			providers: [provideHttpClient(), provideRouter([])],
+		}).compileComponents();
 
+		fixture = TestBed.createComponent(HomePage);
 
-  beforeEach(async () => {
+		component = fixture.componentInstance;
 
-    await TestBed
-      .configureTestingModule({
+		fixture.detectChanges();
+	});
 
-        imports: [
-          HomePage,
-        ],
-
-        providers: [
-          provideHttpClient(),
-          provideRouter([]),
-        ],
-
-      })
-      .compileComponents();
-
-
-    fixture =
-      TestBed.createComponent(
-        HomePage,
-      );
-
-    component =
-      fixture.componentInstance;
-
-    fixture.detectChanges();
-  });
-
-
-  it('should create', () => {
-
-    expect(
-      component,
-    ).toBeTruthy();
-
-  });
+	it("should create", () => {
+		expect(component).toBeTruthy();
+	});
 });

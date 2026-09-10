@@ -31,14 +31,16 @@
   <ion-button routerLink="/parking-events/my">
     Istorija pristupa
   </ion-button>
+  <ion-button expand="block" routerLink="/parking-map">
+    Mapa parkinga
+  </ion-button>
 
   @if ( authSession.user()?.role === 'OPERATOR' || authSession.user()?.role ===
   'ADMIN' ) {
   <ion-button routerLink="/operator">
     Operaterski panel
   </ion-button>
-  }
-   @if (authSession.user()?.role === 'ADMIN') {
+  } @if (authSession.user()?.role === 'ADMIN') {
   <ion-button routerLink="/admin">
     Administracija
   </ion-button>

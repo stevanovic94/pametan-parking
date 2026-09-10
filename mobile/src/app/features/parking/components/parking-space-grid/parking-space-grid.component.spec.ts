@@ -1,24 +1,25 @@
-import { provideHttpClient } from "@angular/common/http";
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { provideRouter } from "@angular/router";
 import { beforeEach, describe, expect, it } from "vitest";
-import { ParkingLotsPage } from "./parking-lots.page";
+import { ParkingSpaceGridComponent } from "./parking-space-grid.component";
 
-describe("ParkingLotsPage", () => {
-	let component: ParkingLotsPage;
+describe("ParkingSpaceGridComponent", () => {
+	let component: ParkingSpaceGridComponent;
 
-	let fixture: ComponentFixture<ParkingLotsPage>;
+	let fixture: ComponentFixture<ParkingSpaceGridComponent>;
 
 	beforeEach(async () => {
 		await TestBed.configureTestingModule({
-			imports: [ParkingLotsPage],
+			imports: [ParkingSpaceGridComponent],
 
-			providers: [provideHttpClient(), provideRouter([])],
+			providers: [provideRouter([])],
 		}).compileComponents();
 
-		fixture = TestBed.createComponent(ParkingLotsPage);
+		fixture = TestBed.createComponent(ParkingSpaceGridComponent);
 
 		component = fixture.componentInstance;
+
+		component.parkingSpaces = [];
 
 		fixture.detectChanges();
 	});

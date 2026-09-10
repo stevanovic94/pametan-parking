@@ -1,90 +1,45 @@
-import {
-  inject,
-  provideAppInitializer,
-} from '@angular/core';
+import { inject, provideAppInitializer } from "@angular/core";
+
+import { bootstrapApplication } from "@angular/platform-browser";
+
+import { provideHttpClient, withInterceptors } from "@angular/common/http";
 
 import {
-  bootstrapApplication,
-} from '@angular/platform-browser';
+	PreloadAllModules,
+	provideRouter,
+	RouteReuseStrategy,
+	withPreloading,
+} from "@angular/router";
 
-import {
-  provideHttpClient,
-  withInterceptors,
-} from '@angular/common/http';
+import { IonicRouteStrategy, provideIonicAngular } from "@ionic/angular";
 
-import {
-  PreloadAllModules,
-  provideRouter,
-  RouteReuseStrategy,
-  withPreloading,
-} from '@angular/router';
+import { AppComponent } from "./app/app.component";
 
-import {
-  IonicRouteStrategy,
-  provideIonicAngular,
-} from '@ionic/angular';
+import { routes } from "./app/app.routes";
 
-import {
-  AppComponent,
-} from './app/app.component';
+import { authInterceptor } from "./app/core/auth/auth.interceptor";
 
-import {
-  routes,
-} from './app/app.routes';
+import { AuthBootstrapService } from "./app/core/auth/auth-bootstrap.service";
 
-import {
-  authInterceptor,
-} from './app/core/auth/auth.interceptor';
+bootstrapApplication(AppComponent, {
+	providers: [
+		{
+			provide: RouteReuseStrategy,
 
-import {
-  AuthBootstrapService,
-} from './app/core/auth/auth-bootstrap.service';
+			useClass: IonicRouteStrategy,
+		},
 
+		provideIonicAngular(),
 
-bootstrapApplication(
-  AppComponent,
-  {
-    providers: [
+		provideRouter(routes, withPreloading(PreloadAllModules)),
 
-      {
-        provide:
-          RouteReuseStrategy,
+		provideHttpClient(withInterceptors([authInterceptor])),
 
-        useClass:
-          IonicRouteStrategy,
-      },
-
-
-      provideIonicAngular(),
-
-
-      provideRouter(
-        routes,
-        withPreloading(
-          PreloadAllModules,
-        ),
-      ),
-
-
-      provideHttpClient(
-        withInterceptors([
-          authInterceptor,
-        ]),
-      ),
-
-
-      /*
-       * Angular čeka da initialize()
-       * završi pre završetka startovanja
-       * aplikacije i route guard provera.
-       */
-      provideAppInitializer(
-        () =>
-          inject(
-            AuthBootstrapService,
-          ).initialize(),
-      ),
-
-    ],
-  },
-);
+		/*
+		 * Angular čeka da initialize()
+		 * završi pre završetka startovanja
+		 * aplikacije i route guard provera.
+		 */
+		provideAppInitializer(() => inject(AuthBootstrapService).initialize()),
+	],
+});

@@ -1,0 +1,118 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>
+      Mapa parkinga
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="page-content">
+    <div class="map-info">
+      <h2>
+        Parking lokacije
+      </h2>
+
+      <p>
+        Na mapi su prikazani parkinzi sa unetim koordinatama. Deaktivirani
+        parkinzi označeni su sivim markerom.
+      </p>
+
+      <ion-button
+        (click)="locateUser()"
+        [disabled]="isLocating()"
+      >
+        {{ isLocating() ? 'Pronalaženje...' : 'Prikaži moju lokaciju' }}
+      </ion-button>
+
+      @if (userLocation()) {
+      <p>
+        Lokacija pronađena. Preciznost: približno {{
+        userLocation()!.accuracy.toFixed(0) }} m.
+      </p>
+      } @if (locationError()) {
+      <p>
+        {{ locationError() }}
+      </p>
+      } @if (isLoading()) {
+      <p>
+        Učitavanje parkinga...
+      </p>
+      } @if (serverError()) {
+      <p>
+        {{ serverError() }}
+      </p>
+      } @if (!isLoading() && !serverError()) {
+      <p>
+        Prikazano parkinga: {{ parkingLocations().length }}
+      </p>
+      }
+    </div>
+
+    <div
+      id="parking-map"
+      class="parking-map"
+    >
+    </div>
+
+    @if ( userLocation() && sortedParkingLocations().length > 0 ) {
+    <div class="distance-list">
+      <h3>
+        Aktivni parkinzi po udaljenosti
+      </h3>
+
+      @for ( parkingLocation of sortedParkingLocations(); track
+      parkingLocation.id ) {
+      <div class="distance-item">
+        <div>
+          <strong>
+            {{ parkingLocation.name }}
+          </strong>
+
+          <p>
+            {{ parkingLocation.address }}
+          </p>
+
+          <p>
+            Udaljenost: {{ formatDistance(parkingLocation.distanceKm) }}
+          </p>
+        </div>
+
+        <ion-button
+          size="small"
+          [routerLink]="[
+                '/parking-lots',
+                parkingLocation.id
+              ]"
+        >
+          Pogledaj
+        </ion-button>
+      </div>
+      }
+    </div>
+    } @if ( !isLoading() && parkingLocations().length === 0 && !serverError() )
+    {
+    <p class="empty-message">
+      Trenutno nema parking lokacija sa unetim koordinatama.
+    </p>
+    }
+
+    <div class="navigation">
+      <ion-button
+        expand="block"
+        fill="outline"
+        routerLink="/parking-lots"
+      >
+        Pregled parkinga
+      </ion-button>
+
+      <ion-button
+        expand="block"
+        fill="outline"
+        routerLink="/home"
+      >
+        Početna
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

@@ -1,6 +1,8 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Parking lokacije</ion-title>
+    <ion-title>
+      Parking lokacije
+    </ion-title>
 
     <ion-buttons slot="end">
       <app-logout-button />
@@ -10,70 +12,155 @@
 
 <ion-content class="ion-padding">
   <h2>
-    {{ editingId() ? 'Izmena parking lokacije' : 'Nova parking lokacija' }}
+    {{
+      editingId()
+        ? 'Izmena parking lokacije'
+        : 'Nova parking lokacija'
+    }}
   </h2>
 
-  <form [formGroup]="form" (ngSubmit)="submit()">
-    <ion-input label="Naziv" labelPlacement="stacked" formControlName="name">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="submit()">
+
+    <ion-input
+      label="Naziv"
+      labelPlacement="stacked"
+      formControlName="name">
     </ion-input>
 
-    <ion-input label="Adresa" labelPlacement="stacked" formControlName="address">
+    <ion-input
+      label="Adresa"
+      labelPlacement="stacked"
+      formControlName="address">
     </ion-input>
 
-    <ion-textarea label="Opis" labelPlacement="stacked" formControlName="description">
+    <ion-input
+      label="Geografska širina"
+      labelPlacement="stacked"
+      type="number"
+      inputmode="decimal"
+      formControlName="latitude">
+    </ion-input>
+
+    <ion-input
+      label="Geografska dužina"
+      labelPlacement="stacked"
+      type="number"
+      inputmode="decimal"
+      formControlName="longitude">
+    </ion-input>
+
+    <ion-textarea
+      label="Opis"
+      labelPlacement="stacked"
+      formControlName="description">
     </ion-textarea>
 
-    <ion-button type="submit" [disabled]="form.invalid || isSubmitting()">
-      {{ editingId() ? 'Sačuvaj izmene' : 'Dodaj parking' }}
+    <ion-button
+      type="submit"
+      [disabled]="
+        form.invalid ||
+        isSubmitting()
+      ">
+      {{
+        editingId()
+          ? 'Sačuvaj izmene'
+          : 'Dodaj parking'
+      }}
     </ion-button>
 
     @if (editingId()) {
-    <ion-button type="button" fill="outline" (click)="cancelEdit()">
-      Otkaži
-    </ion-button>
+      <ion-button
+        type="button"
+        fill="outline"
+        (click)="cancelEdit()">
+        Otkaži
+      </ion-button>
     }
   </form>
 
   @if (serverError()) {
-  <p>{{ serverError() }}</p>
+    <p>
+      {{ serverError() }}
+    </p>
   }
 
-  <h2>Postojeće lokacije</h2>
+  <h2>
+    Postojeće lokacije
+  </h2>
 
   @if (isLoading()) {
-  <p>Učitavanje...</p>
-  } @else if (parkingLots().length === 0) {
-  <p>Trenutno nema parking lokacija.</p>
+    <p>
+      Učitavanje...
+    </p>
   } @else {
-  <ion-list>
-    @for (parkingLot of parkingLots(); track parkingLot.id) {
-    <ion-item>
-      <ion-label>
-        <h2>{{ parkingLot.name }}</h2>
-        <p>{{ parkingLot.address }}</p>
-        <p>
-          Status:
-          {{ parkingLot.isActive ? 'Aktivan' : 'Neaktivan' }}
-        </p>
-      </ion-label>
+    <ion-list>
+      @for (
+        parkingLot of parkingLots();
+        track parkingLot.id
+      ) {
+        <ion-item>
+          <ion-label>
+            <h2>
+              {{ parkingLot.name }}
+            </h2>
 
-      <ion-button fill="outline" (click)="edit(parkingLot)">
-        Izmeni
-      </ion-button>
+            <p>
+              {{ parkingLot.address }}
+            </p>
 
-      <ion-button fill="outline" (click)="toggleActive(parkingLot)">
-        {{ parkingLot.isActive ? 'Deaktiviraj' : 'Aktiviraj' }}
-      </ion-button>
+            <p>
+              Status:
+              {{
+                parkingLot.isActive
+                  ? 'Aktivan'
+                  : 'Neaktivan'
+              }}
+            </p>
 
-      <ion-button [routerLink]="[
+            @if (
+              parkingLot.latitude !== null &&
+              parkingLot.longitude !== null
+            ) {
+              <p>
+                Koordinate:
+                {{ parkingLot.latitude }},
+                {{ parkingLot.longitude }}
+              </p>
+            } @else {
+              <p>
+                Koordinate nisu unete.
+              </p>
+            }
+          </ion-label>
+
+          <ion-button
+            fill="outline"
+            (click)="edit(parkingLot)">
+            Izmeni
+          </ion-button>
+
+          <ion-button
+            fill="outline"
+            (click)="toggleActive(parkingLot)">
+            {{
+              parkingLot.isActive
+                ? 'Deaktiviraj'
+                : 'Aktiviraj'
+            }}
+          </ion-button>
+
+          <ion-button
+            [routerLink]="[
               '/admin/parking-lots',
               parkingLot.id,
               'spaces'
             ]">
-        Parking mesta
-      </ion-button>
-    </ion-item>
-    }
-  </ion-list>
+            Parking mesta
+          </ion-button>
+        </ion-item>
+      }
+    </ion-list>
   }
-</ion-content>
+</ion-content> 

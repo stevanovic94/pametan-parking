@@ -9,18 +9,18 @@
 </ion-header>
 
 <ion-content class="ion-padding">
+  <ion-button fill="outline" routerLink="/home">
+    Početna
+  </ion-button>
   <h2>Dostupni parkinzi</h2>
 
   @if (serverError()) {
   <p>{{ serverError() }}</p>
-  }
-
-  @if (isLoading()) {
+  } @if (isLoading()) {
   <p>Učitavanje...</p>
   } @else if (parkingLots().length === 0) {
   <p>Trenutno nema aktivnih parking lokacija.</p>
-  } @else {
-  @for (parkingLot of parkingLots(); track parkingLot.id) {
+  } @else { @for (parkingLot of parkingLots(); track parkingLot.id) {
   <ion-card>
     <ion-card-header>
       <ion-card-title>{{ parkingLot.name }}</ion-card-title>
@@ -53,14 +53,15 @@
         <strong>{{ parkingLot.spaceStats.unknown }}</strong>
       </p>
 
-      <ion-button [routerLink]="[
+      <ion-button
+        [routerLink]="[
               '/parking-lots',
               parkingLot.id
-            ]">
+            ]"
+      >
         Pregled mesta
       </ion-button>
     </ion-card-content>
   </ion-card>
-  }
-  }
+  } }
 </ion-content>

@@ -1,0 +1,64 @@
+<div class="legend">
+  <div class="legend-item">
+    <span class="legend-color space-free"> </span>
+
+    <span>
+      Slobodno
+    </span>
+  </div>
+
+  <div class="legend-item">
+    <span class="legend-color space-reserved"> </span>
+
+    <span>
+      Rezervisano
+    </span>
+  </div>
+
+  <div class="legend-item">
+    <span class="legend-color space-occupied"> </span>
+
+    <span>
+      Zauzeto
+    </span>
+  </div>
+
+  <div class="legend-item">
+    <span class="legend-color space-unknown"> </span>
+
+    <span>
+      Nepoznato
+    </span>
+  </div>
+</div>
+
+<p class="status-note">
+  Rezervisano označava mesto koje ima aktivnu rezervaciju u ovom trenutku.
+</p>
+
+@if (parkingSpaces.length === 0) {
+  <p>
+    Nema aktivnih parking mesta.
+  </p>
+} @else {
+  <div class="parking-grid">
+    @for (parkingSpace of parkingSpaces; track parkingSpace.id) {
+      <a
+        [class]='"parking-space " + getStatusClass(parkingSpace)'
+        [routerLink]='["/parking-spaces", parkingSpace.id, "reserve"]'
+      >
+        <strong class="space-code">
+          {{ parkingSpace.code }}
+        </strong>
+
+        <span class="space-status">
+          {{ getStatusLabel(parkingSpace) }}
+        </span>
+
+        <span class="reserve-text">
+          Rezerviši termin
+        </span>
+      </a>
+    }
+  </div>
+}

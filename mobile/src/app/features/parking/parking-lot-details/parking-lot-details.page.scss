@@ -1,0 +1,19 @@
+.navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.parking-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.parking-summary div {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--ion-color-light);
+}
