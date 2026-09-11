@@ -10,7 +10,14 @@ import type { HardwareSimulationState } from "../models/hardware-simulation-stat
 export class SimulatedParkingHardwareGateway extends ParkingHardwareGateway {
 	private readonly logger = new Logger(SimulatedParkingHardwareGateway.name);
 
+	private readonly barrierOpenDurationMs = 12_000;
+
 	private readonly states = new Map<string, HardwareSimulationState>();
+
+	private readonly barrierTimers = new Map<
+		string,
+		ReturnType<typeof setTimeout>
+	>();
 
 	async openBarrier(
 		parkingLotId: string,
@@ -18,11 +25,25 @@ export class SimulatedParkingHardwareGateway extends ParkingHardwareGateway {
 	): Promise<void> {
 		const state = this.getOrCreateState(parkingLotId);
 
+		const timerKey = this.createBarrierTimerKey(parkingLotId, direction);
+
+		const existingTimer = this.barrierTimers.get(timerKey);
+
+		if (existingTimer) {
+			clearTimeout(existingTimer);
+		}
+
 		state.barriers[direction] = "OPEN";
 
 		this.logger.log(
 			`SIMULATOR: ${direction} rampa parkinga ${parkingLotId} je otvorena.`,
 		);
+
+		const timer = setTimeout(() => {
+			void this.closeBarrier(parkingLotId, direction);
+		}, this.barrierOpenDurationMs);
+
+		this.barrierTimers.set(timerKey, timer);
 	}
 
 	async closeBarrier(
@@ -30,6 +51,16 @@ export class SimulatedParkingHardwareGateway extends ParkingHardwareGateway {
 		direction: BarrierDirection,
 	): Promise<void> {
 		const state = this.getOrCreateState(parkingLotId);
+
+		const timerKey = this.createBarrierTimerKey(parkingLotId, direction);
+
+		const existingTimer = this.barrierTimers.get(timerKey);
+
+		if (existingTimer) {
+			clearTimeout(existingTimer);
+
+			this.barrierTimers.delete(timerKey);
+		}
 
 		state.barriers[direction] = "CLOSED";
 
@@ -59,11 +90,18 @@ export class SimulatedParkingHardwareGateway extends ParkingHardwareGateway {
 
 	reset(parkingLotId?: string): void {
 		if (parkingLotId) {
+			this.clearParkingTimers(parkingLotId);
+
 			this.states.delete(parkingLotId);
 
 			return;
 		}
 
+		for (const timer of this.barrierTimers.values()) {
+			clearTimeout(timer);
+		}
+
+		this.barrierTimers.clear();
 		this.states.clear();
 	}
 
@@ -88,6 +126,27 @@ export class SimulatedParkingHardwareGateway extends ParkingHardwareGateway {
 		this.states.set(parkingLotId, state);
 
 		return state;
+	}
+
+	private createBarrierTimerKey(
+		parkingLotId: string,
+		direction: BarrierDirection,
+	): string {
+		return `${parkingLotId}:${direction}`;
+	}
+
+	private clearParkingTimers(parkingLotId: string): void {
+		for (const direction of ["ENTRY", "EXIT"] as const) {
+			const timerKey = this.createBarrierTimerKey(parkingLotId, direction);
+
+			const timer = this.barrierTimers.get(timerKey);
+
+			if (timer) {
+				clearTimeout(timer);
+
+				this.barrierTimers.delete(timerKey);
+			}
+		}
 	}
 
 	private cloneState(state: HardwareSimulationState): HardwareSimulationState {

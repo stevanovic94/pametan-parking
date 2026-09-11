@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SimulatedParkingHardwareGateway } from "./simulated-parking-hardware.gateway.js";
 
@@ -6,7 +6,15 @@ describe("SimulatedParkingHardwareGateway", () => {
 	let gateway: SimulatedParkingHardwareGateway;
 
 	beforeEach(() => {
+		vi.useFakeTimers();
+
 		gateway = new SimulatedParkingHardwareGateway();
+	});
+
+	afterEach(() => {
+		gateway.reset();
+
+		vi.useRealTimers();
 	});
 
 	it("should initialize barriers as closed", () => {
@@ -19,12 +27,44 @@ describe("SimulatedParkingHardwareGateway", () => {
 		expect(state.freeSpaces).toBeNull();
 	});
 
-	it("should open and close entry barrier", async () => {
+	it("should open entry barrier", async () => {
 		await gateway.openBarrier("parking-1", "ENTRY");
 
 		expect(gateway.getState("parking-1").barriers.ENTRY).toBe("OPEN");
+	});
+
+	it("should automatically close barrier after 12 seconds", async () => {
+		await gateway.openBarrier("parking-1", "ENTRY");
+
+		await vi.advanceTimersByTimeAsync(11_999);
+
+		expect(gateway.getState("parking-1").barriers.ENTRY).toBe("OPEN");
+
+		await vi.advanceTimersByTimeAsync(1);
+
+		expect(gateway.getState("parking-1").barriers.ENTRY).toBe("CLOSED");
+	});
+
+	it("should allow manual barrier closing", async () => {
+		await gateway.openBarrier("parking-1", "ENTRY");
 
 		await gateway.closeBarrier("parking-1", "ENTRY");
+
+		expect(gateway.getState("parking-1").barriers.ENTRY).toBe("CLOSED");
+	});
+
+	it("should restart automatic closing timer when barrier is opened again", async () => {
+		await gateway.openBarrier("parking-1", "ENTRY");
+
+		await vi.advanceTimersByTimeAsync(10_000);
+
+		await gateway.openBarrier("parking-1", "ENTRY");
+
+		await vi.advanceTimersByTimeAsync(2_001);
+
+		expect(gateway.getState("parking-1").barriers.ENTRY).toBe("OPEN");
+
+		await vi.advanceTimersByTimeAsync(9_999);
 
 		expect(gateway.getState("parking-1").barriers.ENTRY).toBe("CLOSED");
 	});
