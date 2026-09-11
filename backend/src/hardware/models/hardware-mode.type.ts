@@ -1,0 +1,1 @@
+export type HardwareMode = | "SIMULATED" | "RASPBERRY_PI";
