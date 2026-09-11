@@ -1,21 +1,15 @@
 <ion-header>
   <ion-toolbar>
+    <app-back-button defaultHref="/home" />
     <ion-title>Istorija pristupa</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
-  <ion-button
-    fill="outline"
-    routerLink="/home"
-  >
-    Početna
-  </ion-button>
-
   <h2>Istorija pristupa parkingu</h2>
 
   @if (serverError()) {
-  <p>{{ serverError() }}</p>
+  <p class="app-error">{{ serverError() }}</p>
   } @if (isLoading()) {
   <p>Učitavanje...</p>
   } @else if (parkingEvents().length === 0) {

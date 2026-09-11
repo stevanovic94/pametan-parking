@@ -1,8 +1,6 @@
 import { DatePipe } from "@angular/common";
 import { Component, inject, signal } from "@angular/core";
-import { RouterLink } from "@angular/router";
 import {
-	IonButton,
 	IonCard,
 	IonCardContent,
 	IonCardHeader,
@@ -17,19 +15,19 @@ import { ParkingAccessResult } from "../../../core/parking-events/models/parking
 import { ParkingEvent } from "../../../core/parking-events/models/parking-event.model";
 import { ParkingEventType } from "../../../core/parking-events/models/parking-event-type.type";
 import { ParkingEventsService } from "../../../core/parking-events/parking-events.service";
+import { BackButtonComponent } from "../../../shared/components/back-button/back-button.component";
 
 @Component({
 	selector: "app-my-parking-events",
 	templateUrl: "./my-parking-events.page.html",
 	styleUrls: ["./my-parking-events.page.scss"],
 	imports: [
+		BackButtonComponent,
 		DatePipe,
-		RouterLink,
 		IonHeader,
 		IonToolbar,
 		IonTitle,
 		IonContent,
-		IonButton,
 		IonCard,
 		IonCardHeader,
 		IonCardTitle,

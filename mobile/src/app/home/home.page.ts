@@ -13,7 +13,6 @@ import { HttpErrorResponse } from "@angular/common/http";
 
 import { AuthSessionService } from "../core/auth/auth-session.service";
 import { AuthService } from "../core/auth/auth.service";
-import { RouterLink } from "@angular/router";
 import { LogoutButtonComponent } from "../shared/components/logout-button/logout-button.component";
 
 @Component({
@@ -29,7 +28,6 @@ import { LogoutButtonComponent } from "../shared/components/logout-button/logout
 		IonButton,
 		IonButtons,
 		LogoutButtonComponent,
-		RouterLink,
 	],
 })
 export class HomePage {

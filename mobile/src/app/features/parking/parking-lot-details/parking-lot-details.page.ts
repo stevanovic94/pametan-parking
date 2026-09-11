@@ -14,12 +14,14 @@ import { ParkingSpace } from "../../../core/parking/models/parking-space.model";
 import { ParkingService } from "../../../core/parking/parking.service";
 import { LogoutButtonComponent } from "../../../shared/components/logout-button/logout-button.component";
 import { ParkingSpaceGridComponent } from "../components/parking-space-grid/parking-space-grid.component";
+import { BackButtonComponent } from "../../../shared/components/back-button/back-button.component";
 
 @Component({
 	selector: "app-parking-lot-details",
 	templateUrl: "./parking-lot-details.page.html",
 	styleUrls: ["./parking-lot-details.page.scss"],
 	imports: [
+    BackButtonComponent,
 		RouterLink,
 		IonHeader,
 		IonToolbar,

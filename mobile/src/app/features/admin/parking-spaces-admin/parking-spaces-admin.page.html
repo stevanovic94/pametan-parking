@@ -1,5 +1,6 @@
 <ion-header>
   <ion-toolbar>
+    <app-back-button defaultHref="/admin/parking-lots" />
     <ion-title>Parking mesta</ion-title>
 
     <ion-buttons slot="end">
@@ -47,7 +48,7 @@
   }
 
   @if (serverError()) {
-  <p>{{ serverError() }}</p>
+  <p class="app-error">{{ serverError() }}</p>
   }
 
   <h2>Parking mesta</h2>

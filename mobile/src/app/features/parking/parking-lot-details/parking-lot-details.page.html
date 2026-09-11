@@ -1,5 +1,6 @@
 <ion-header>
   <ion-toolbar>
+    <app-back-button defaultHref="/parking-lots" />
     <ion-title>
       Parking mesta
     </ion-title>
@@ -14,13 +15,6 @@
   <div class="navigation">
     <ion-button
       fill="outline"
-      routerLink="/parking-map"
-    >
-      Nazad na mapu
-    </ion-button>
-
-    <ion-button
-      fill="outline"
       routerLink="/parking-lots"
     >
       Svi parkinzi
@@ -28,7 +22,7 @@
   </div>
 
   @if (serverError()) {
-  <p>
+  <p class="app-error">
     {{ serverError() }}
   </p>
   } @if (isLoading()) {

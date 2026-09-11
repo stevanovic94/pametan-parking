@@ -7,42 +7,52 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <h2>Dobrodošli</h2>
+<ion-content>
+  <section class="home-hero">
+    <p class="eyebrow">Pametan parking</p>
+    <h2>Dobrodošli</h2>
 
-  @if (authSession.user()) {
-  <p>
-    Prijavljeni ste kao:
-    <strong>{{ authSession.user()!.email }}</strong>
-  </p>
+    @if (authSession.user()) {
+      <div class="profile-summary">
+        <div>
+          <span>Email</span>
+          <strong>{{ authSession.user()!.email }}</strong>
+        </div>
+        <div>
+          <span>Uloga</span>
+          <strong>{{ authSession.user()!.role }}</strong>
+        </div>
+      </div>
+    }
+  </section>
 
-  <p>
-    Uloga:
-    <strong>{{ authSession.user()!.role }}</strong>
-  </p>
-  }
+  <section class="home-actions">
+    <ion-button expand="block" routerLink="/parking-map">
+      Mapa parkinga
+    </ion-button>
+    <ion-button expand="block" routerLink="/parking-lots">
+      Pregled parkinga
+    </ion-button>
+    <ion-button expand="block" routerLink="/my-reservations">
+      Moje rezervacije
+    </ion-button>
+    <ion-button expand="block" routerLink="/parking-events/my">
+      Istorija pristupa
+    </ion-button>
 
-  <ion-button routerLink="/parking-lots">
-    Pregled parkinga
-  </ion-button>
-  <ion-button routerLink="/my-reservations">
-    Moje rezervacije
-  </ion-button>
-  <ion-button routerLink="/parking-events/my">
-    Istorija pristupa
-  </ion-button>
-  <ion-button expand="block" routerLink="/parking-map">
-    Mapa parkinga
-  </ion-button>
+    @if (
+      authSession.user()?.role === 'OPERATOR' ||
+      authSession.user()?.role === 'ADMIN'
+    ) {
+      <ion-button expand="block" routerLink="/operator">
+        Operaterski panel
+      </ion-button>
+    }
 
-  @if ( authSession.user()?.role === 'OPERATOR' || authSession.user()?.role ===
-  'ADMIN' ) {
-  <ion-button routerLink="/operator">
-    Operaterski panel
-  </ion-button>
-  } @if (authSession.user()?.role === 'ADMIN') {
-  <ion-button routerLink="/admin">
-    Administracija
-  </ion-button>
-  }
+    @if (authSession.user()?.role === 'ADMIN') {
+      <ion-button expand="block" routerLink="/admin">
+        Administracija
+      </ion-button>
+    }
+  </section>
 </ion-content>

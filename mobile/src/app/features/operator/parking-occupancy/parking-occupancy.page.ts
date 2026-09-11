@@ -1,6 +1,5 @@
 import { Component, inject, signal } from "@angular/core";
 import { FormBuilder, ReactiveFormsModule } from "@angular/forms";
-import { RouterLink } from "@angular/router";
 import {
 	IonButton,
 	IonCard,
@@ -22,14 +21,15 @@ import { ParkingLot } from "../../../core/parking/models/parking-lot.model";
 import { ParkingSpace } from "../../../core/parking/models/parking-space.model";
 import { ParkingOccupancyService } from "../../../core/parking/parking-occupancy.service";
 import { ParkingService } from "../../../core/parking/parking.service";
+import { BackButtonComponent } from "../../../shared/components/back-button/back-button.component";
 
 @Component({
 	selector: "app-parking-occupancy",
 	templateUrl: "./parking-occupancy.page.html",
 	styleUrls: ["./parking-occupancy.page.scss"],
 	imports: [
+		BackButtonComponent,
 		ReactiveFormsModule,
-		RouterLink,
 		IonHeader,
 		IonToolbar,
 		IonTitle,

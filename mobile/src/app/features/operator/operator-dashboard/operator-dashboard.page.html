@@ -1,46 +1,28 @@
 <ion-header>
   <ion-toolbar>
+    <app-back-button defaultHref="/home" />
     <ion-title>Operaterski panel</ion-title>
-
     <ion-buttons slot="end">
       <app-logout-button />
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <h2>Operaterska kontrolna tabla</h2>
+<ion-content>
+  <section class="dashboard-intro">
+    <h2>Operaterska kontrolna tabla</h2>
+    <p>Pregled i operativno upravljanje sistemom pametnog parkinga.</p>
+  </section>
 
-  <p>
-    Pregled i operativno upravljanje sistemom pametnog parkinga.
-  </p>
-
-  <ion-button
-    expand="block"
-    routerLink="/operator/reservations"
-  >
-    Pregled rezervacija
-  </ion-button>
-
-  <ion-button
-    expand="block"
-    routerLink="/operator/parking-events"
-  >
-    Parking događaji
-  </ion-button>
-
-  <ion-button
-    expand="block"
-    routerLink="/operator/parking-occupancy"
-  >
-    Fizičko stanje parkinga
-  </ion-button>
-
-  <ion-button
-    expand="block"
-    fill="outline"
-    routerLink="/home"
-  >
-    Početna
-  </ion-button>
+  <section class="dashboard-actions">
+    <ion-button expand="block" routerLink="/operator/reservations">
+      Pregled rezervacija
+    </ion-button>
+    <ion-button expand="block" routerLink="/operator/parking-events">
+      Parking događaji
+    </ion-button>
+    <ion-button expand="block" routerLink="/operator/parking-occupancy">
+      Fizičko stanje parkinga
+    </ion-button>
+  </section>
 </ion-content>

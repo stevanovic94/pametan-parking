@@ -19,12 +19,14 @@ const passwordsMatchValidator: ValidatorFn = (control: AbstractControl): Validat
 
   return password === confirmPassword ? null : { passwordsMismatch: true };
 };
+import { BackButtonComponent } from "../../../shared/components/back-button/back-button.component";
 
 @Component({
   selector: 'app-register',
   templateUrl: './register.page.html',
   styleUrls: ['./register.page.scss'],
-  imports: [IonButton, IonContent, IonHeader, IonInput, IonTitle, IonToolbar, ReactiveFormsModule, RouterLink, CommonModule]
+  imports: [
+    BackButtonComponent,IonButton, IonContent, IonHeader, IonInput, IonTitle, IonToolbar, ReactiveFormsModule, RouterLink, CommonModule]
 })
 
 export class RegisterPage {

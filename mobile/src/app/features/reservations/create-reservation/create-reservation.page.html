@@ -1,5 +1,6 @@
 <ion-header>
   <ion-toolbar>
+    <app-back-button defaultHref="/parking-lots" />
     <ion-title>Nova rezervacija</ion-title>
   </ion-toolbar>
 </ion-header>
@@ -41,14 +42,7 @@
   </form>
 
   @if (serverError()) {
-  <p>{{ serverError() }}</p>
+  <p class="app-error">{{ serverError() }}</p>
   }
-
-  <ion-button fill="outline" [routerLink]="[
-        '/parking-lots',
-        parkingSpace()!.parkingLot?.id
-      ]">
-    Nazad na parking
-  </ion-button>
   }
 </ion-content>

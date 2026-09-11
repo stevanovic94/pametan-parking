@@ -18,12 +18,14 @@ import { ParkingLot } from '../../../core/parking/models/parking-lot.model';
 import { ParkingSpace } from '../../../core/parking/models/parking-space.model';
 import { ParkingService } from '../../../core/parking/parking.service';
 import { LogoutButtonComponent } from '../../../shared/components/logout-button/logout-button.component';
+import { BackButtonComponent } from "../../../shared/components/back-button/back-button.component";
 
 @Component({
   selector: 'app-parking-spaces-admin',
   templateUrl: './parking-spaces-admin.page.html',
   styleUrls: ['./parking-spaces-admin.page.scss'],
   imports: [
+    BackButtonComponent,
     ReactiveFormsModule,
     IonHeader,
     IonToolbar,

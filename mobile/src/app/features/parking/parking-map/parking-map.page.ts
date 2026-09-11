@@ -13,12 +13,14 @@ import { DeviceLocationService } from "../../../core/location/device-location.se
 import { UserLocation } from "../../../core/location/models/user-location.model";
 import { ParkingMapLocation } from "../../../core/parking-map/models/parking-map-location.model";
 import { ParkingMapService } from "../../../core/parking-map/parking-map.service";
+import { BackButtonComponent } from "../../../shared/components/back-button/back-button.component";
 
 @Component({
 	selector: "app-parking-map",
 	templateUrl: "./parking-map.page.html",
 	styleUrls: ["./parking-map.page.scss"],
-	imports: [RouterLink, IonHeader, IonToolbar, IonTitle, IonContent, IonButton],
+	imports: [
+    BackButtonComponent,RouterLink, IonHeader, IonToolbar, IonTitle, IonContent, IonButton],
 })
 export class ParkingMapPage {
 	private readonly parkingMapService = inject(ParkingMapService);

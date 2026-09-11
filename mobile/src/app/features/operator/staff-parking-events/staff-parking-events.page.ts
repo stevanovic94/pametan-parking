@@ -1,7 +1,6 @@
 import { DatePipe } from "@angular/common";
 import { Component, inject, signal } from "@angular/core";
 import { FormBuilder, ReactiveFormsModule } from "@angular/forms";
-import { RouterLink } from "@angular/router";
 import {
 	IonButton,
 	IonCard,
@@ -24,15 +23,16 @@ import { StaffParkingEvent } from "../../../core/parking-events/models/staff-par
 import { ParkingEventsService } from "../../../core/parking-events/parking-events.service";
 import { ParkingLot } from "../../../core/parking/models/parking-lot.model";
 import { ParkingService } from "../../../core/parking/parking.service";
+import { BackButtonComponent } from "../../../shared/components/back-button/back-button.component";
 
 @Component({
 	selector: "app-staff-parking-events",
 	templateUrl: "./staff-parking-events.page.html",
 	styleUrls: ["./staff-parking-events.page.scss"],
 	imports: [
+    BackButtonComponent,
 		DatePipe,
 		ReactiveFormsModule,
-		RouterLink,
 		IonHeader,
 		IonToolbar,
 		IonTitle,

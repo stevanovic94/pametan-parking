@@ -1,39 +1,25 @@
 <ion-header>
   <ion-toolbar>
+    <app-back-button defaultHref="/home" />
     <ion-title>Administracija</ion-title>
-
     <ion-buttons slot="end">
       <app-logout-button />
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <h2>Administratorska kontrolna tabla</h2>
+<ion-content>
+  <section class="dashboard-intro">
+    <h2>Administratorska kontrolna tabla</h2>
+    <p>Administracija sistema i pristup operaterskim funkcijama.</p>
+  </section>
 
-  <p>
-    Administracija sistema i pristup operaterskim funkcijama.
-  </p>
-
-  <ion-button
-    expand="block"
-    routerLink="/admin/parking-lots"
-  >
-    Upravljanje parkingom
-  </ion-button>
-
-  <ion-button
-    expand="block"
-    routerLink="/operator"
-  >
-    Operaterski panel
-  </ion-button>
-
-  <ion-button
-    expand="block"
-    fill="outline"
-    routerLink="/home"
-  >
-    Početna
-  </ion-button>
+  <section class="dashboard-actions">
+    <ion-button expand="block" routerLink="/admin/parking-lots">
+      Upravljanje parkingom
+    </ion-button>
+    <ion-button expand="block" routerLink="/operator">
+      Operaterski panel
+    </ion-button>
+  </section>
 </ion-content>

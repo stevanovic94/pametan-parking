@@ -1,27 +1,54 @@
-#container {
-  text-align: center;
-
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);    //pomeri element nagore za polovinu njegove visine
+.home-hero {
+  padding: 26px;
+  border: 1px solid var(--app-border);
+  border-radius: 18px;
+  background: var(--app-surface);
+  box-shadow: var(--app-shadow);
 }
 
-#container strong {
-  font-size: 20px;
-  line-height: 26px;
+.eyebrow {
+  margin: 0 0 6px;
+  color: var(--ion-color-primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-#container p {
-  font-size: 16px;
-  line-height: 22px;
+.home-hero h2 {
+  margin-top: 0;
+}
 
-  color: #8c8c8c;
+.profile-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
 
+.profile-summary div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  background: var(--app-surface-muted);
+}
+
+.profile-summary span {
+  color: var(--app-text-muted);
+  font-size: 0.82rem;
+}
+
+.home-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.home-actions ion-button {
   margin: 0;
-}
-
-#container a {
-  text-decoration: none;
+  min-height: 48px;
 }

@@ -18,12 +18,14 @@ import { finalize, Observable } from "rxjs";
 import { ParkingLot } from "../../../core/parking/models/parking-lot.model";
 import { ParkingService } from "../../../core/parking/parking.service";
 import { LogoutButtonComponent } from "../../../shared/components/logout-button/logout-button.component";
+import { BackButtonComponent } from "../../../shared/components/back-button/back-button.component";
 
 @Component({
 	selector: "app-parking-lots-admin",
 	templateUrl: "./parking-lots-admin.page.html",
 	styleUrls: ["./parking-lots-admin.page.scss"],
 	imports: [
+    BackButtonComponent,
 		ReactiveFormsModule,
 		RouterLink,
 		IonHeader,

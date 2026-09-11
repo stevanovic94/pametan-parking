@@ -16,12 +16,14 @@ import { finalize } from 'rxjs';
 import { ParkingLotOverview } from '../../../core/parking/models/parking-lot-overview.model';
 import { ParkingService } from '../../../core/parking/parking.service';
 import { LogoutButtonComponent } from '../../../shared/components/logout-button/logout-button.component';
+import { BackButtonComponent } from "../../../shared/components/back-button/back-button.component";
 
 @Component({
   selector: 'app-parking-lots',
   templateUrl: './parking-lots.page.html',
   styleUrls: ['./parking-lots.page.scss'],
   imports: [
+    BackButtonComponent,
     RouterLink,
     IonHeader,
     IonToolbar,

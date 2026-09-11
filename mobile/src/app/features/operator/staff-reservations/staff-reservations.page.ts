@@ -1,7 +1,6 @@
 import { DatePipe } from "@angular/common";
 import { Component, inject, signal } from "@angular/core";
 import { FormBuilder, ReactiveFormsModule } from "@angular/forms";
-import { RouterLink } from "@angular/router";
 import {
 	IonButton,
 	IonCard,
@@ -23,15 +22,16 @@ import { ParkingService } from "../../../core/parking/parking.service";
 import { ReservationStatus } from "../../../core/reservations/models/reservation-status.type";
 import { StaffReservation } from "../../../core/reservations/models/staff-reservation.model";
 import { ReservationService } from "../../../core/reservations/reservation.service";
+import { BackButtonComponent } from "../../../shared/components/back-button/back-button.component";
 
 @Component({
 	selector: "app-staff-reservations",
 	templateUrl: "./staff-reservations.page.html",
 	styleUrls: ["./staff-reservations.page.scss"],
 	imports: [
+		BackButtonComponent,
 		DatePipe,
 		ReactiveFormsModule,
-		RouterLink,
 		IonHeader,
 		IonToolbar,
 		IonTitle,
@@ -91,36 +91,29 @@ export class StaffReservationsPage {
 		this.serverError.set("");
 
 		this.reservationService
-      .getAllForStaff({
-        parkingLotId:
-          filters.parkingLotId ||
-          undefined,
+			.getAllForStaff({
+				parkingLotId: filters.parkingLotId || undefined,
 
-        status:
-          filters.status
-            ? filters.status as ReservationStatus
-            : undefined,
-      })
-      .pipe(
-        finalize(() => {
-          this.isLoading.set(false);
-        }),
-      )
-      .subscribe({
-        next: reservations => {
-          this.reservations.set(
-            reservations,
-          );
-        },
+				status: filters.status
+					? (filters.status as ReservationStatus)
+					: undefined,
+			})
+			.pipe(
+				finalize(() => {
+					this.isLoading.set(false);
+				}),
+			)
+			.subscribe({
+				next: (reservations) => {
+					this.reservations.set(reservations);
+				},
 
-        error: () => {
-          this.reservations.set([]);
+				error: () => {
+					this.reservations.set([]);
 
-          this.serverError.set(
-            'Učitavanje rezervacija nije uspelo.',
-          );
-        },
-      });
+					this.serverError.set("Učitavanje rezervacija nije uspelo.");
+				},
+			});
 	}
 
 	applyFilters(): void {

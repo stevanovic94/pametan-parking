@@ -29,6 +29,7 @@ import { finalize } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { AuthSessionService } from '../../../core/auth/auth-session.service';
 import { Router } from '@angular/router';
+import { BackButtonComponent } from "../../../shared/components/back-button/back-button.component";
 
 @Component({
   selector: 'app-login',
@@ -36,6 +37,7 @@ import { Router } from '@angular/router';
   styleUrls: ['./login.page.scss'],
 
   imports: [
+    BackButtonComponent,
     IonButton,
     IonContent,
     IonHeader,
