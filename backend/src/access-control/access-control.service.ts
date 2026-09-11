@@ -1,13 +1,21 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
+
 import {
 	ParkingAccessResult,
 	ParkingEventType,
 } from "../generated/prisma/client.js";
+
+import { ParkingHardwareGateway } from "../hardware/gateways/parking-hardware.gateway.js";
+
 import { PrismaService } from "../prisma/prisma.service.js";
 
 @Injectable()
 export class AccessControlService {
-	constructor(private readonly prisma: PrismaService) {}
+	constructor(
+		private readonly prisma: PrismaService,
+
+		private readonly hardware: ParkingHardwareGateway,
+	) {}
 
 	async requestEntry(userId: string, parkingLotId: string) {
 		const now = new Date();
@@ -16,6 +24,7 @@ export class AccessControlService {
 			where: {
 				id: userId,
 			},
+
 			select: {
 				id: true,
 				isActive: true,
@@ -30,6 +39,7 @@ export class AccessControlService {
 			where: {
 				id: parkingLotId,
 			},
+
 			select: {
 				id: true,
 				name: true,
@@ -86,6 +96,7 @@ export class AccessControlService {
 		const reservation = await this.prisma.reservation.findFirst({
 			where: {
 				userId,
+
 				status: "CONFIRMED",
 
 				startAt: {
@@ -99,6 +110,7 @@ export class AccessControlService {
 				parkingSpace: {
 					is: {
 						parkingLotId,
+
 						isActive: true,
 					},
 				},
@@ -134,7 +146,7 @@ export class AccessControlService {
 			});
 		}
 
-		return this.recordDecision({
+		const decision = await this.recordDecision({
 			userId,
 			parkingLotId,
 			reservationId: reservation.id,
@@ -143,6 +155,10 @@ export class AccessControlService {
 			reason: null,
 			occurredAt: now,
 		});
+
+		await this.hardware.openBarrier(parkingLotId, "ENTRY");
+
+		return decision;
 	}
 
 	async requestExit(userId: string, parkingLotId: string) {
@@ -152,6 +168,7 @@ export class AccessControlService {
 			where: {
 				id: userId,
 			},
+
 			select: {
 				id: true,
 			},
@@ -165,6 +182,7 @@ export class AccessControlService {
 			where: {
 				id: parkingLotId,
 			},
+
 			select: {
 				id: true,
 			},
@@ -194,12 +212,16 @@ export class AccessControlService {
 			});
 		}
 
-		return this.recordGrantedExit({
+		const decision = await this.recordGrantedExit({
 			userId,
 			parkingLotId,
 			reservationId: latestGrantedEvent.reservationId,
 			occurredAt: now,
 		});
+
+		await this.hardware.openBarrier(parkingLotId, "EXIT");
+
+		return decision;
 	}
 
 	private findLatestGrantedEvent(userId: string, parkingLotId: string) {
@@ -294,7 +316,9 @@ export class AccessControlService {
 
 			return {
 				granted: true,
+
 				reason: null,
+
 				event,
 			};
 		});

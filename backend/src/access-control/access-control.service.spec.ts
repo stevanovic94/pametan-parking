@@ -1,8 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import {
 	ParkingAccessResult,
 	ParkingEventType,
 } from "../generated/prisma/client.js";
+
 import { AccessControlService } from "./access-control.service.js";
 
 describe("AccessControlService", () => {
@@ -21,10 +23,19 @@ describe("AccessControlService", () => {
 
 		parkingEvent: {
 			findFirst: vi.fn(),
+
 			create: vi.fn(),
 		},
 
 		$transaction: vi.fn(),
+	};
+
+	const hardwareMock = {
+		openBarrier: vi.fn(),
+
+		closeBarrier: vi.fn(),
+
+		updateFreeSpacesDisplay: vi.fn(),
 	};
 
 	let service: AccessControlService;
@@ -32,38 +43,58 @@ describe("AccessControlService", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 
-		service = new AccessControlService(prismaMock as never);
+		service = new AccessControlService(
+			prismaMock as never,
+			hardwareMock as never,
+		);
 
 		prismaMock.user.findUnique.mockResolvedValue({
 			id: "user-1",
+
 			isActive: true,
 		});
 
 		prismaMock.parkingLot.findUnique.mockResolvedValue({
 			id: "parking-1",
+
 			name: "Parking 1",
+
 			address: "Adresa",
+
 			isActive: true,
 		});
 
 		prismaMock.parkingEvent.findFirst.mockResolvedValue(null);
+
+		hardwareMock.openBarrier.mockResolvedValue(undefined);
+
+		hardwareMock.closeBarrier.mockResolvedValue(undefined);
+
+		hardwareMock.updateFreeSpacesDisplay.mockResolvedValue(undefined);
 	});
 
-	it("should grant entry with valid reservation", async () => {
+	it("should grant entry with valid reservation and open entry barrier", async () => {
 		prismaMock.reservation.findFirst.mockResolvedValue({
 			id: "reservation-1",
+
 			startAt: new Date(),
+
 			endAt: new Date(),
+
 			parkingSpace: {
 				id: "space-1",
+
 				code: "A1",
 			},
 		});
 
 		prismaMock.parkingEvent.create.mockResolvedValue({
 			id: "event-1",
+
 			type: ParkingEventType.ENTRY,
+
 			result: ParkingAccessResult.GRANTED,
+
 			reason: null,
 		});
 
@@ -82,15 +113,20 @@ describe("AccessControlService", () => {
 				}),
 			}),
 		);
+
+		expect(hardwareMock.openBarrier).toHaveBeenCalledWith("parking-1", "ENTRY");
 	});
 
-	it("should deny entry without valid reservation", async () => {
+	it("should deny entry without valid reservation and keep barrier closed", async () => {
 		prismaMock.reservation.findFirst.mockResolvedValue(null);
 
 		prismaMock.parkingEvent.create.mockResolvedValue({
 			id: "event-1",
+
 			type: ParkingEventType.ENTRY,
+
 			result: ParkingAccessResult.DENIED,
+
 			reason: "Nema važeće rezervacije za ulazak u ovom trenutku.",
 		});
 
@@ -99,18 +135,24 @@ describe("AccessControlService", () => {
 		expect(result.granted).toBe(false);
 
 		expect(prismaMock.parkingEvent.create).toHaveBeenCalled();
+
+		expect(hardwareMock.openBarrier).not.toHaveBeenCalled();
 	});
 
 	it("should deny entry when parking lot is inactive", async () => {
 		prismaMock.parkingLot.findUnique.mockResolvedValue({
 			id: "parking-1",
+
 			name: "Parking 1",
+
 			address: "Adresa",
+
 			isActive: false,
 		});
 
 		prismaMock.parkingEvent.create.mockResolvedValue({
 			id: "event-1",
+
 			result: ParkingAccessResult.DENIED,
 		});
 
@@ -119,9 +161,11 @@ describe("AccessControlService", () => {
 		expect(result.granted).toBe(false);
 
 		expect(prismaMock.reservation.findFirst).not.toHaveBeenCalled();
+
+		expect(hardwareMock.openBarrier).not.toHaveBeenCalled();
 	});
 
-	it("should grant exit after granted entry", async () => {
+	it("should grant exit after granted entry and open exit barrier", async () => {
 		prismaMock.parkingEvent.findFirst.mockResolvedValue({
 			type: ParkingEventType.ENTRY,
 
@@ -138,8 +182,11 @@ describe("AccessControlService", () => {
 			parkingEvent: {
 				create: vi.fn().mockResolvedValue({
 					id: "event-exit",
+
 					type: ParkingEventType.EXIT,
+
 					result: ParkingAccessResult.GRANTED,
+
 					reason: null,
 				}),
 			},
@@ -156,6 +203,7 @@ describe("AccessControlService", () => {
 		expect(txMock.reservation.updateMany).toHaveBeenCalledWith({
 			where: {
 				id: "reservation-1",
+
 				status: "CONFIRMED",
 			},
 
@@ -175,6 +223,8 @@ describe("AccessControlService", () => {
 				}),
 			}),
 		);
+
+		expect(hardwareMock.openBarrier).toHaveBeenCalledWith("parking-1", "EXIT");
 	});
 
 	it("should deny exit without previous granted entry", async () => {
@@ -182,7 +232,9 @@ describe("AccessControlService", () => {
 
 		prismaMock.parkingEvent.create.mockResolvedValue({
 			id: "event-exit-denied",
+
 			type: ParkingEventType.EXIT,
+
 			result: ParkingAccessResult.DENIED,
 		});
 
@@ -191,6 +243,8 @@ describe("AccessControlService", () => {
 		expect(result.granted).toBe(false);
 
 		expect(prismaMock.$transaction).not.toHaveBeenCalled();
+
+		expect(hardwareMock.openBarrier).not.toHaveBeenCalled();
 	});
 
 	it("should deny second entry while user is already inside", async () => {
@@ -202,7 +256,9 @@ describe("AccessControlService", () => {
 
 		prismaMock.parkingEvent.create.mockResolvedValue({
 			id: "event-entry-denied",
+
 			type: ParkingEventType.ENTRY,
+
 			result: ParkingAccessResult.DENIED,
 		});
 
@@ -211,7 +267,7 @@ describe("AccessControlService", () => {
 		expect(result.granted).toBe(false);
 
 		expect(prismaMock.reservation.findFirst).not.toHaveBeenCalled();
-	});
 
-	
+		expect(hardwareMock.openBarrier).not.toHaveBeenCalled();
+	});
 });
