@@ -15,6 +15,8 @@ import { AuthSessionService } from "../core/auth/auth-session.service";
 import { AuthService } from "../core/auth/auth.service";
 import { LogoutButtonComponent } from "../shared/components/logout-button/logout-button.component";
 
+import { RouterLink } from "@angular/router";
+
 @Component({
 	selector: "app-home",
 	templateUrl: "home.page.html",
@@ -28,6 +30,7 @@ import { LogoutButtonComponent } from "../shared/components/logout-button/logout
 		IonButton,
 		IonButtons,
 		LogoutButtonComponent,
+		RouterLink,
 	],
 })
 export class HomePage {

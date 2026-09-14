@@ -16,12 +16,12 @@ import { ParkingSensorSyncService } from "./parking-sensor-sync.service.js";
 import { ParkingSensorPollingService } from "./parking-sensor-polling.service.js";
 
 @Module({
-  imports: [PrismaModule, SecurityModule, ParkingLotsModule, HardwareModule, ParkingSensorSyncService],
+  imports: [PrismaModule, SecurityModule, ParkingLotsModule, HardwareModule,],
 
   controllers: [ParkingSpacesController],
 
-  providers: [ParkingSpacesService, ParkingSensorPollingService],
+  providers: [ParkingSpacesService, ParkingSensorPollingService, ParkingSensorSyncService,],
 
-  exports: [ParkingSpacesService],
+  exports: [ParkingSpacesService, ParkingSensorSyncService,],
 })
 export class ParkingSpacesModule {}
