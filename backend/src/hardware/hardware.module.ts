@@ -4,51 +4,91 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 
 import { ParkingHardwareGateway } from "./gateways/parking-hardware.gateway.js";
 
+import { ParkingSensorGateway } from "./gateways/parking-sensor.gateway.js";
+
 import { RaspberryPiParkingHardwareGateway } from "./raspberry-pi/raspberry-pi-parking-hardware.gateway.js";
+
+import { RaspberryPiParkingSensorGateway } from "./raspberry-pi/raspberry-pi-parking-sensor.gateway.js";
 
 import { SimulatedParkingHardwareGateway } from "./simulators/simulated-parking-hardware.gateway.js";
 
+import { SimulatedParkingSensorGateway } from "./simulators/simulated-parking-sensor.gateway.js";
+
 @Module({
-	imports: [ConfigModule],
+  imports: [ConfigModule],
 
-	providers: [
-		SimulatedParkingHardwareGateway,
-		RaspberryPiParkingHardwareGateway,
+  providers: [
+    SimulatedParkingHardwareGateway,
+    RaspberryPiParkingHardwareGateway,
 
-		{
-			provide: ParkingHardwareGateway,
+    SimulatedParkingSensorGateway,
+    RaspberryPiParkingSensorGateway,
 
-			inject: [
-				ConfigService,
-				SimulatedParkingHardwareGateway,
-				RaspberryPiParkingHardwareGateway,
-			],
+    {
+      provide: ParkingHardwareGateway,
 
-			useFactory: (
-				configService: ConfigService,
+      inject: [
+        ConfigService,
+        SimulatedParkingHardwareGateway,
+        RaspberryPiParkingHardwareGateway,
+      ],
 
-				simulator: SimulatedParkingHardwareGateway,
+      useFactory: (
+        configService: ConfigService,
 
-				raspberryPi: RaspberryPiParkingHardwareGateway,
-			): ParkingHardwareGateway => {
-				const hardwareMode = configService
-					.get<string>("HARDWARE_MODE")
-					?.trim()
-					.toUpperCase();
+        simulator: SimulatedParkingHardwareGateway,
 
-				if (hardwareMode === "RASPBERRY_PI") {
-					return raspberryPi;
-				}
+        raspberryPi: RaspberryPiParkingHardwareGateway,
+      ): ParkingHardwareGateway => {
+        const hardwareMode = configService
+          .get<string>("HARDWARE_MODE")
+          ?.trim()
+          .toUpperCase();
 
-				return simulator;
-			},
-		},
-	],
+        if (hardwareMode === "RASPBERRY_PI") {
+          return raspberryPi;
+        }
 
-	exports: [
-		ParkingHardwareGateway,
+        return simulator;
+      },
+    },
 
-		SimulatedParkingHardwareGateway,
-	],
+    {
+      provide: ParkingSensorGateway,
+
+      inject: [
+        ConfigService,
+        SimulatedParkingSensorGateway,
+        RaspberryPiParkingSensorGateway,
+      ],
+
+      useFactory: (
+        configService: ConfigService,
+
+        simulator: SimulatedParkingSensorGateway,
+
+        raspberryPi: RaspberryPiParkingSensorGateway,
+      ): ParkingSensorGateway => {
+        const hardwareMode = configService
+          .get<string>("HARDWARE_MODE")
+          ?.trim()
+          .toUpperCase();
+
+        if (hardwareMode === "RASPBERRY_PI") {
+          return raspberryPi;
+        }
+
+        return simulator;
+      },
+    },
+  ],
+
+  exports: [
+    ParkingHardwareGateway,
+    ParkingSensorGateway,
+
+    SimulatedParkingHardwareGateway,
+    SimulatedParkingSensorGateway,
+  ],
 })
 export class HardwareModule {}
