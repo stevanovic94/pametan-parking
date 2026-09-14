@@ -4,38 +4,34 @@ import { ParkingSensorGateway } from "../gateways/parking-sensor.gateway.js";
 
 import type { ParkingSensorReading } from "../models/parking-sensor-reading.model.js";
 
+import { RaspberryPiHardwareBridgeClient } from "./raspberry-pi-hardware-bridge.client.js";
+
 @Injectable()
 export class RaspberryPiParkingSensorGateway extends ParkingSensorGateway {
   private readonly logger = new Logger(RaspberryPiParkingSensorGateway.name);
 
+  constructor(private readonly bridge: RaspberryPiHardwareBridgeClient) {
+    super();
+  }
+
   async readParkingSensors(
     parkingLotId: string,
   ): Promise<ParkingSensorReading[]> {
-    this.logger.debug(
-      `RPi: zahtev za očitavanje senzora parkinga ${parkingLotId}.`,
-    );
+    try {
+      return await this.bridge.readParkingSensors();
+    } catch (error) {
+      this.logger.error(
+        `Očitavanje senzora parkinga ${parkingLotId} nije uspelo.`,
+        error instanceof Error ? error.stack : undefined,
+      );
 
-    return [
-      {
-        position: 1,
+      return [1, 2, 3, 4].map((position) => ({
+        position: position as 1 | 2 | 3 | 4,
+
         distanceMm: null,
-        occupancyStatus: "UNKNOWN",
-      },
-      {
-        position: 2,
-        distanceMm: null,
-        occupancyStatus: "UNKNOWN",
-      },
-      {
-        position: 3,
-        distanceMm: null,
-        occupancyStatus: "UNKNOWN",
-      },
-      {
-        position: 4,
-        distanceMm: null,
-        occupancyStatus: "UNKNOWN",
-      },
-    ];
+
+        occupancyStatus: "UNKNOWN" as const,
+      }));
+    }
   }
 }

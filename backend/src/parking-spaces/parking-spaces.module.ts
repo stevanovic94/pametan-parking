@@ -13,13 +13,14 @@ import { ParkingSpacesService } from "./parking-spaces.service.js";
 import { HardwareModule } from "../hardware/hardware.module.js";
 
 import { ParkingSensorSyncService } from "./parking-sensor-sync.service.js";
+import { ParkingSensorPollingService } from "./parking-sensor-polling.service.js";
 
 @Module({
   imports: [PrismaModule, SecurityModule, ParkingLotsModule, HardwareModule, ParkingSensorSyncService],
 
   controllers: [ParkingSpacesController],
 
-  providers: [ParkingSpacesService],
+  providers: [ParkingSpacesService, ParkingSensorPollingService],
 
   exports: [ParkingSpacesService],
 })

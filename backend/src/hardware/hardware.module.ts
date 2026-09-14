@@ -14,6 +14,8 @@ import { SimulatedParkingHardwareGateway } from "./simulators/simulated-parking-
 
 import { SimulatedParkingSensorGateway } from "./simulators/simulated-parking-sensor.gateway.js";
 
+import { RaspberryPiHardwareBridgeClient } from "./raspberry-pi/raspberry-pi-hardware-bridge.client.js";
+
 @Module({
   imports: [ConfigModule],
 
@@ -23,6 +25,7 @@ import { SimulatedParkingSensorGateway } from "./simulators/simulated-parking-se
 
     SimulatedParkingSensorGateway,
     RaspberryPiParkingSensorGateway,
+    RaspberryPiHardwareBridgeClient,
 
     {
       provide: ParkingHardwareGateway,

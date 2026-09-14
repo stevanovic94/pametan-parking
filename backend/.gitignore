@@ -28,3 +28,6 @@ backend/src/generated/prisma/
 .claude/
 .windsurf/
 skills-lock.json
+
+# Kalibracija senzora
+hardware-bridge/parking-sensor-calibration.json
