@@ -14,9 +14,14 @@ export class PrismaService extends PrismaClient {
         'DATABASE_URL',
       );
 
-    const adapter = new PrismaPg({
-      connectionString,
-    });
+    const adapter = new PrismaPg(
+      {
+        connectionString,
+      },
+      {
+        schema: 'public',
+      },
+    );
 
     super({
       adapter,

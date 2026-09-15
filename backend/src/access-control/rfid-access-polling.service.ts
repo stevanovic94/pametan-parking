@@ -32,6 +32,10 @@ export class RfidAccessPollingService implements OnModuleInit, OnModuleDestroy {
    */
   private armed = true;
 
+  private consecutiveNoCardReads = 0;
+
+  private readonly requiredNoCardReads = 4;
+
   private parkingLotId = "";
 
   private intervalMs = 500;
@@ -108,28 +112,28 @@ export class RfidAccessPollingService implements OnModuleInit, OnModuleDestroy {
     try {
       const uid = await this.hardwareBridge.readNfcUid();
 
-      /*
-       * Nema kartice:
-       * sledeće prislanjanje ponovo može
-       * da pokrene kontrolu.
-       */
       if (uid === null) {
-        this.armed = true;
+  this.consecutiveNoCardReads += 1;
 
-        return;
-      }
+  if (
+    this.consecutiveNoCardReads >=
+    this.requiredNoCardReads
+  ) {
+    this.armed = true;
+  }
 
-      /*
-       * Kartica je i dalje na čitaču.
-       * Ne obrađujemo je ponovo.
-       */
-      if (!this.armed) {
-        return;
-      }
+  return;
+}
 
-      this.armed = false;
+this.consecutiveNoCardReads = 0;
 
-      await this.processUid(uid);
+if (!this.armed) {
+  return;
+}
+
+this.armed = false;
+
+await this.processUid(uid);
     } catch (error) {
       this.logger.error(`RFID polling greška: ${this.errorMessage(error)}`);
     } finally {
