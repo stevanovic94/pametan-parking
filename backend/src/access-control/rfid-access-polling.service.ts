@@ -5,248 +5,487 @@ import {
   OnModuleInit,
 } from "@nestjs/common";
 
-import { ConfigService } from "@nestjs/config";
+import {
+  ConfigService,
+} from "@nestjs/config";
 
 import {
   ParkingAccessResult,
   ParkingEventType,
 } from "../generated/prisma/client.js";
 
-import { RaspberryPiHardwareBridgeClient } from "../hardware/raspberry-pi/raspberry-pi-hardware-bridge.client.js";
+import {
+  RaspberryPiHardwareBridgeClient,
+} from "../hardware/raspberry-pi/raspberry-pi-hardware-bridge.client.js";
 
-import { PrismaService } from "../prisma/prisma.service.js";
+import {
+  PrismaService,
+} from "../prisma/prisma.service.js";
 
-import { AccessControlService } from "./access-control.service.js";
+import {
+  AccessControlService,
+} from "./access-control.service.js";
+
 
 @Injectable()
-export class RfidAccessPollingService implements OnModuleInit, OnModuleDestroy {
-  private readonly logger = new Logger(RfidAccessPollingService.name);
+export class RfidAccessPollingService
+  implements
+    OnModuleInit,
+    OnModuleDestroy {
 
-  private timer: NodeJS.Timeout | null = null;
-
-  private running = false;
-
-  /*
-   * Kartica sme da bude obrađena samo jednom
-   * dok se fizički ne skloni sa čitača.
-   */
-  private armed = true;
-
-  private consecutiveNoCardReads = 0;
-
-  private readonly requiredNoCardReads = 4;
-
-  private parkingLotId = "";
-
-  private intervalMs = 500;
-
-  constructor(
-    private readonly configService: ConfigService,
-
-    private readonly prisma: PrismaService,
-
-    private readonly accessControlService: AccessControlService,
-
-    private readonly hardwareBridge: RaspberryPiHardwareBridgeClient,
-  ) {}
-
-  onModuleInit(): void {
-    const enabled =
-      this.configService
-        .get<string>("RFID_ACCESS_ENABLED")
-        ?.trim()
-        .toLowerCase() === "true";
-
-    if (!enabled) {
-      this.logger.log("RFID kontrola pristupa je isključena.");
-
-      return;
-    }
-
-    this.parkingLotId = (
-      this.configService.get<string>("RFID_ACCESS_PARKING_LOT_ID") ??
-      this.configService.get<string>("PARKING_SENSOR_PARKING_LOT_ID") ??
-      ""
-    ).trim();
-
-    if (!this.parkingLotId) {
-      this.logger.error("RFID_ACCESS_PARKING_LOT_ID nije podešen.");
-
-      return;
-    }
-
-    const configuredInterval = Number(
-      this.configService.get<string>("RFID_ACCESS_POLL_INTERVAL_MS") ?? "500",
+  private readonly logger =
+    new Logger(
+      RfidAccessPollingService.name,
     );
 
-    if (Number.isFinite(configuredInterval)) {
-      this.intervalMs = Math.max(300, configuredInterval);
+
+  private timer:
+    ReturnType<typeof setInterval> |
+    null =
+      null;
+
+
+  private running =
+    false;
+
+
+  private enabled =
+    false;
+
+
+  private parkingLotId:
+    string | null =
+      null;
+
+
+  private intervalMs =
+    500;
+
+
+  /*
+   * Kartica se obrađuje samo jednom
+   * dok se ne ukloni sa čitača.
+   */
+  private armed =
+    true;
+
+
+  /*
+   * Zahtevamo više uzastopnih očitavanja
+   * "nema kartice" pre ponovnog armiranja.
+   *
+   * Sa intervalom od 500 ms:
+   * 4 čitanja ~= 2 sekunde.
+   */
+  private consecutiveNoCardReads =
+    0;
+
+
+  private readonly requiredNoCardReads =
+    4;
+
+
+  constructor(
+    private readonly configService:
+      ConfigService,
+
+    private readonly prisma:
+      PrismaService,
+
+    private readonly hardwareBridge:
+      RaspberryPiHardwareBridgeClient,
+
+    private readonly accessControlService:
+      AccessControlService,
+  ) {}
+
+
+  onModuleInit(): void {
+
+    const enabledValue =
+      this.configService
+        .get<string>(
+          "RFID_ACCESS_ENABLED",
+        )
+        ?.trim()
+        .toLowerCase();
+
+
+    this.enabled =
+      enabledValue === "true";
+
+
+    if (!this.enabled) {
+
+      this.logger.log(
+        "RFID kontrola pristupa je isključena.",
+      );
+
+      return;
     }
+
+
+    const configuredParkingLotId =
+      this.configService
+        .get<string>(
+          "RFID_ACCESS_PARKING_LOT_ID",
+        )
+        ?.trim();
+
+
+    const sensorParkingLotId =
+      this.configService
+        .get<string>(
+          "PARKING_SENSOR_PARKING_LOT_ID",
+        )
+        ?.trim();
+
+
+    this.parkingLotId =
+      configuredParkingLotId ||
+      sensorParkingLotId ||
+      null;
+
+
+    if (!this.parkingLotId) {
+
+      this.logger.warn(
+        "RFID kontrola nije pokrenuta jer parkingLotId nije podešen.",
+      );
+
+      this.enabled =
+        false;
+
+      return;
+    }
+
+
+    const rawInterval =
+      Number(
+        this.configService
+          .get<string>(
+            "RFID_ACCESS_POLL_INTERVAL_MS",
+          ) ??
+        "500",
+      );
+
+
+    if (
+      Number.isFinite(rawInterval) &&
+      rawInterval >= 300
+    ) {
+
+      this.intervalMs =
+        Math.floor(
+          rawInterval,
+        );
+    }
+
+
+    this.timer =
+      setInterval(
+        () => {
+          void this.poll();
+        },
+        this.intervalMs,
+      );
+
 
     this.logger.log(
       `RFID kontrola pokrenuta za parking ${this.parkingLotId}, interval ${this.intervalMs} ms.`,
     );
-
-    this.timer = setInterval(() => {
-      void this.poll();
-    }, this.intervalMs);
-
-    void this.poll();
   }
+
 
   onModuleDestroy(): void {
+
     if (this.timer) {
-      clearInterval(this.timer);
 
-      this.timer = null;
+      clearInterval(
+        this.timer,
+      );
+
+      this.timer =
+        null;
     }
   }
 
-  private async poll(): Promise<void> {
-    if (this.running) {
-      return;
-    }
 
-    this.running = true;
+  private async poll():
+    Promise<void> {
 
-    try {
-      const uid = await this.hardwareBridge.readNfcUid();
-
-      if (uid === null) {
-  this.consecutiveNoCardReads += 1;
-
-  if (
-    this.consecutiveNoCardReads >=
-    this.requiredNoCardReads
-  ) {
-    this.armed = true;
-  }
-
-  return;
-}
-
-this.consecutiveNoCardReads = 0;
-
-if (!this.armed) {
-  return;
-}
-
-this.armed = false;
-
-await this.processUid(uid);
-    } catch (error) {
-      this.logger.error(`RFID polling greška: ${this.errorMessage(error)}`);
-    } finally {
-      this.running = false;
-    }
-  }
-
-  private async processUid(uid: string): Promise<void> {
-    this.logger.log(`Očitana RFID kartica ${uid}.`);
-
-    const user = await this.prisma.user.findUnique({
-      where: {
-        rfidUid: uid,
-      },
-
-      select: {
-        id: true,
-        email: true,
-        isActive: true,
-      },
-    });
-
-    /*
-     * UID nije dodeljen nijednom korisniku.
-     * Nemamo userId pa ne kreiramo
-     * ParkingEvent, samo odbijamo pristup.
-     */
-    if (!user) {
-      this.logger.warn(`Nepoznata RFID kartica ${uid}.`);
-
-      await this.signalResult(false);
+    if (
+      !this.enabled ||
+      !this.parkingLotId ||
+      this.running
+    ) {
 
       return;
     }
 
+
+    this.running =
+      true;
+
+
     try {
-      const latestGrantedEvent = await this.prisma.parkingEvent.findFirst({
-        where: {
-          userId: user.id,
 
-          parkingLotId: this.parkingLotId,
+      const uid =
+        await this.hardwareBridge
+          .readNfcUid();
 
-          result: ParkingAccessResult.GRANTED,
-        },
-
-        select: {
-          type: true,
-        },
-
-        orderBy: [
-          {
-            occurredAt: "desc",
-          },
-          {
-            createdAt: "desc",
-          },
-        ],
-      });
 
       /*
-       * Poslednji GRANTED je ENTRY:
-       * korisnik je unutra -> EXIT.
+       * Nema kartice.
        *
-       * U svakom drugom slučaju:
-       * pokušavamo ENTRY.
+       * Ne armiramo sistem odmah,
+       * već tek posle 4 uzastopna
+       * prazna očitavanja.
        */
-      const isInside = latestGrantedEvent?.type === ParkingEventType.ENTRY;
+      if (uid === null) {
 
-      const decision = isInside
-        ? await this.accessControlService.requestExit(
-            user.id,
-            this.parkingLotId,
-          )
-        : await this.accessControlService.requestEntry(
-            user.id,
-            this.parkingLotId,
-          );
+        this.consecutiveNoCardReads +=
+          1;
 
-      await this.signalResult(decision.granted);
+
+        if (
+          this.consecutiveNoCardReads >=
+          this.requiredNoCardReads
+        ) {
+
+          this.armed =
+            true;
+        }
+
+
+        return;
+      }
+
+
+      /*
+       * Kartica je trenutno očitana.
+       */
+      this.consecutiveNoCardReads =
+        0;
+
+
+      /*
+       * Ako je kartica već obrađena
+       * i još nije pouzdano uklonjena,
+       * ignorišemo novo očitavanje.
+       */
+      if (!this.armed) {
+
+        return;
+      }
+
+
+      this.armed =
+        false;
+
 
       this.logger.log(
-        [
-          `RFID ${uid}`,
-          `korisnik=${user.email}`,
-          `akcija=${isInside ? "EXIT" : "ENTRY"}`,
-          `rezultat=${decision.granted ? "GRANTED" : "DENIED"}`,
-          decision.reason ? `razlog=${decision.reason}` : "",
-        ]
-          .filter(Boolean)
-          .join(", "),
+        `Očitana RFID kartica ${uid}.`,
       );
-    } catch (error) {
-      await this.signalResult(false);
 
-      throw error;
-    }
-  }
 
-  private async signalResult(granted: boolean): Promise<void> {
-    try {
-      await this.hardwareBridge.showAccessResult(granted);
+      await this.processUid(
+        uid,
+        this.parkingLotId,
+      );
+
     } catch (error) {
+
+      /*
+       * U slučaju neočekivane greške
+       * signalizujemo odbijen pristup.
+       */
+      await this.signalResult(
+        false,
+      );
+
+
       this.logger.error(
-        `LED indikacija nije uspela: ${this.errorMessage(error)}`,
+        `Greška RFID kontrole: ${this.errorMessage(error)}`,
+      );
+
+    } finally {
+
+      this.running =
+        false;
+    }
+  }
+
+
+  private async processUid(
+    uid: string,
+    parkingLotId: string,
+  ): Promise<void> {
+
+    const user =
+      await this.prisma.user
+        .findUnique({
+
+          where: {
+
+            rfidUid:
+              uid,
+          },
+
+          select: {
+
+            id: true,
+
+            email: true,
+
+            isActive: true,
+          },
+        });
+
+
+    /*
+     * Nepoznata kartica:
+     * nema ParkingEvent-a jer nemamo userId.
+     */
+    if (!user) {
+
+      await this.signalResult(
+        false,
+      );
+
+
+      this.logger.warn(
+        `RFID ${uid}, korisnik nije pronađen, rezultat=DENIED`,
+      );
+
+
+      return;
+    }
+
+
+    /*
+     * Na osnovu poslednjeg GRANTED događaja
+     * određujemo da li kartica znači
+     * ENTRY ili EXIT.
+     */
+    const latestGrantedEvent =
+      await this.prisma
+        .parkingEvent
+        .findFirst({
+
+          where: {
+
+            userId:
+              user.id,
+
+            parkingLotId,
+
+            result:
+              ParkingAccessResult.GRANTED,
+          },
+
+          select: {
+
+            type: true,
+          },
+
+          orderBy: [
+            {
+              occurredAt:
+                "desc",
+            },
+            {
+              createdAt:
+                "desc",
+            },
+          ],
+        });
+
+
+    const isInside =
+      latestGrantedEvent?.type ===
+      ParkingEventType.ENTRY;
+
+
+    const action =
+      isInside
+        ? "EXIT"
+        : "ENTRY";
+
+
+    const decision =
+      isInside
+        ? await this
+            .accessControlService
+            .requestExit(
+              user.id,
+              parkingLotId,
+            )
+
+        : await this
+            .accessControlService
+            .requestEntry(
+              user.id,
+              parkingLotId,
+            );
+
+
+    await this.signalResult(
+      decision.granted,
+    );
+
+
+    const reason =
+      decision.reason
+        ? `, razlog=${decision.reason}`
+        : "";
+
+
+    this.logger.log(
+      `RFID ${uid}, korisnik=${user.email}, akcija=${action}, rezultat=${decision.granted ? "GRANTED" : "DENIED"}${reason}`,
+    );
+  }
+
+
+  private async signalResult(
+    granted: boolean,
+  ): Promise<void> {
+
+    try {
+
+      await this.hardwareBridge
+        .showAccessResult(
+          granted,
+        );
+
+    } catch (error) {
+
+      /*
+       * Greška LED signalizacije ne sme
+       * da poništi već donetu odluku
+       * o pristupu.
+       */
+      this.logger.error(
+        `LED signalizacija nije uspela: ${this.errorMessage(error)}`,
       );
     }
   }
 
-  private errorMessage(error: unknown): string {
-    if (error instanceof Error) {
+
+  private errorMessage(
+    error: unknown,
+  ): string {
+
+    if (
+      error instanceof Error
+    ) {
+
       return error.message;
     }
 
-    return String(error);
+
+    return String(
+      error,
+    );
   }
 }
