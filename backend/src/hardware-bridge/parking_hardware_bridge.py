@@ -14,6 +14,7 @@ from pathlib import Path
 import adafruit_vl53l0x
 import board
 import digitalio
+from adafruit_pn532.spi import PN532_SPI
 
 
 HOST = os.getenv("HARDWARE_BRIDGE_HOST", "127.0.0.1")
@@ -26,6 +27,8 @@ ERRORS_TO_UNKNOWN = 3
 DEBOUNCE_READINGS = 3
 RECOVERY_INTERVAL_S = 5.0
 CALIBRATION_SAMPLES = 10
+
+LED_DURATION_S = 3.0
 
 CALIBRATION_FILE = Path(
     os.getenv(
@@ -71,6 +74,11 @@ DIGITS = {
     9: {"A", "B", "C", "D", "F", "G"},
 }
 
+GREEN_LED_PIN = board.D18
+RED_LED_PIN = board.D24
+
+PN532_CS_PIN = board.D25
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -92,12 +100,7 @@ class SensorManager:
         for pin in self.xshut:
             pin.switch_to_output(value=False)
 
-        self.sensors = [
-            None,
-            None,
-            None,
-            None,
-        ]
+        self.sensors = [None, None, None, None]
 
         self.states = [
             "UNKNOWN",
@@ -113,33 +116,10 @@ class SensorManager:
             None,
         ]
 
-        self.error_counts = [
-            0,
-            0,
-            0,
-            0,
-        ]
-
-        self.candidates = [
-            None,
-            None,
-            None,
-            None,
-        ]
-
-        self.candidate_counts = [
-            0,
-            0,
-            0,
-            0,
-        ]
-
-        self.next_recovery = [
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-        ]
+        self.error_counts = [0, 0, 0, 0]
+        self.candidates = [None, None, None, None]
+        self.candidate_counts = [0, 0, 0, 0]
+        self.next_recovery = [0.0, 0.0, 0.0, 0.0]
 
         self.lock = threading.Lock()
         self.running = True
@@ -149,21 +129,17 @@ class SensorManager:
         self.initialize_all()
 
         if not self.calibration:
-            if all(
-                sensor is not None
-                for sensor in self.sensors
-            ):
+            if all(sensor is not None for sensor in self.sensors):
                 logger.warning(
                     "Kalibracija ne postoji. "
-                    "Pretpostavlja se da su sva 4 parking mesta PRAZNA."
+                    "Pretpostavlja se da su sva parking mesta PRAZNA."
                 )
 
                 self.calibrate_empty()
 
             else:
                 logger.error(
-                    "Kalibracija ne postoji, a nisu dostupna sva 4 senzora. "
-                    "Status ostaje UNKNOWN."
+                    "Kalibracija ne postoji, a nisu dostupna sva 4 senzora."
                 )
 
         self.thread = threading.Thread(
@@ -174,9 +150,7 @@ class SensorManager:
         self.thread.start()
 
     def initialize_all(self) -> None:
-        logger.info(
-            "Gasim sva 4 VL53L0X senzora."
-        )
+        logger.info("Gasim sva 4 VL53L0X senzora.")
 
         for pin in self.xshut:
             pin.value = False
@@ -186,17 +160,11 @@ class SensorManager:
         for index in range(4):
             self.initialize_sensor(index)
 
-    def initialize_sensor(
-        self,
-        index: int,
-    ) -> bool:
+    def initialize_sensor(self, index: int) -> bool:
         pin = self.xshut[index]
         address = I2C_ADDRESSES[index]
 
-        for attempt in range(
-            1,
-            INIT_RETRIES + 1,
-        ):
+        for attempt in range(1, INIT_RETRIES + 1):
             try:
                 pin.value = False
                 time.sleep(0.1)
@@ -204,13 +172,9 @@ class SensorManager:
                 pin.value = True
                 time.sleep(INIT_WAIT_S)
 
-                sensor = adafruit_vl53l0x.VL53L0X(
-                    self.i2c
-                )
+                sensor = adafruit_vl53l0x.VL53L0X(self.i2c)
 
-                sensor.set_address(
-                    address
-                )
+                sensor.set_address(address)
 
                 self.sensors[index] = sensor
                 self.error_counts[index] = 0
@@ -242,23 +206,18 @@ class SensorManager:
             pass
 
         self.next_recovery[index] = (
-            time.monotonic()
-            + RECOVERY_INTERVAL_S
+            time.monotonic() + RECOVERY_INTERVAL_S
         )
 
         return False
 
-    def load_calibration(
-        self,
-    ) -> dict:
+    def load_calibration(self) -> dict:
         if not CALIBRATION_FILE.exists():
             return {}
 
         try:
             data = json.loads(
-                CALIBRATION_FILE.read_text(
-                    encoding="utf-8"
-                )
+                CALIBRATION_FILE.read_text(encoding="utf-8")
             )
 
             logger.info(
@@ -276,9 +235,7 @@ class SensorManager:
 
             return {}
 
-    def calibrate_empty(
-        self,
-    ) -> None:
+    def calibrate_empty(self) -> None:
         calibration = {}
 
         logger.warning(
@@ -286,9 +243,7 @@ class SensorManager:
             "Sva 4 parking mesta moraju biti PRAZNA."
         )
 
-        for index, sensor in enumerate(
-            self.sensors
-        ):
+        for index, sensor in enumerate(self.sensors):
             if sensor is None:
                 logger.error(
                     "Kalibracija prekinuta jer senzor %d nije dostupan.",
@@ -306,14 +261,10 @@ class SensorManager:
                 attempts += 1
 
                 try:
-                    distance = int(
-                        sensor.range
-                    )
+                    distance = int(sensor.range)
 
                     if distance > 0:
-                        samples.append(
-                            distance
-                        )
+                        samples.append(distance)
 
                 except Exception as exc:
                     logger.warning(
@@ -331,34 +282,22 @@ class SensorManager:
                 )
                 return
 
-            baseline = int(
-                statistics.median(
-                    samples
-                )
-            )
+            baseline = int(statistics.median(samples))
 
             occupied_delta = max(
                 40,
-                int(
-                    baseline * 0.25
-                ),
+                int(baseline * 0.25),
             )
 
             free_delta = max(
                 20,
-                int(
-                    baseline * 0.12
-                ),
+                int(baseline * 0.12),
             )
 
-            calibration[
-                str(index + 1)
-            ] = {
+            calibration[str(index + 1)] = {
                 "baselineMm": baseline,
-                "occupiedThresholdMm":
-                    baseline - occupied_delta,
-                "freeThresholdMm":
-                    baseline - free_delta,
+                "occupiedThresholdMm": baseline - occupied_delta,
+                "freeThresholdMm": baseline - free_delta,
             }
 
             self.states[index] = "FREE"
@@ -373,10 +312,7 @@ class SensorManager:
             )
 
         CALIBRATION_FILE.write_text(
-            json.dumps(
-                calibration,
-                indent=2,
-            ),
+            json.dumps(calibration, indent=2),
             encoding="utf-8",
         )
 
@@ -392,23 +328,17 @@ class SensorManager:
         index: int,
         distance: int,
     ) -> str:
-        config = self.calibration.get(
-            str(index + 1)
-        )
+        config = self.calibration.get(str(index + 1))
 
         if not config:
             return "UNKNOWN"
 
         occupied_threshold = int(
-            config[
-                "occupiedThresholdMm"
-            ]
+            config["occupiedThresholdMm"]
         )
 
         free_threshold = int(
-            config[
-                "freeThresholdMm"
-            ]
+            config["freeThresholdMm"]
         )
 
         current = self.states[index]
@@ -451,10 +381,7 @@ class SensorManager:
             self.candidates[index] = candidate
             self.candidate_counts[index] = 1
 
-        if (
-            self.candidate_counts[index]
-            >= DEBOUNCE_READINGS
-        ):
+        if self.candidate_counts[index] >= DEBOUNCE_READINGS:
             old_state = self.states[index]
 
             self.states[index] = candidate
@@ -468,10 +395,7 @@ class SensorManager:
                 candidate,
             )
 
-    def mark_failed(
-        self,
-        index: int,
-    ) -> None:
+    def mark_failed(self, index: int) -> None:
         logger.warning(
             "Senzor %d prelazi u UNKNOWN.",
             index + 1,
@@ -479,8 +403,8 @@ class SensorManager:
 
         self.states[index] = "UNKNOWN"
         self.distances[index] = None
-
         self.sensors[index] = None
+
         self.candidates[index] = None
         self.candidate_counts[index] = 0
         self.error_counts[index] = 0
@@ -491,18 +415,11 @@ class SensorManager:
             pass
 
         self.next_recovery[index] = (
-            time.monotonic()
-            + RECOVERY_INTERVAL_S
+            time.monotonic() + RECOVERY_INTERVAL_S
         )
 
-    def try_recovery(
-        self,
-        index: int,
-    ) -> None:
-        if (
-            time.monotonic()
-            < self.next_recovery[index]
-        ):
+    def try_recovery(self, index: int) -> None:
+        if time.monotonic() < self.next_recovery[index]:
             return
 
         logger.info(
@@ -522,36 +439,19 @@ class SensorManager:
                     for sensor in self.sensors
                 )
             ):
-                logger.warning(
-                    "Sva 4 senzora su sada dostupna. "
-                    "Pokrećem početnu kalibraciju."
-                )
-
                 self.calibrate_empty()
 
-        else:
-            self.next_recovery[index] = (
-                time.monotonic()
-                + RECOVERY_INTERVAL_S
-            )
-
-    def read_loop(
-        self,
-    ) -> None:
+    def read_loop(self) -> None:
         while self.running:
             for index in range(4):
                 sensor = self.sensors[index]
 
                 if sensor is None:
-                    self.try_recovery(
-                        index
-                    )
+                    self.try_recovery(index)
                     continue
 
                 try:
-                    distance = int(
-                        sensor.range
-                    )
+                    distance = int(sensor.range)
 
                     with self.lock:
                         self.error_counts[index] = 0
@@ -583,54 +483,34 @@ class SensorManager:
                         >= ERRORS_TO_UNKNOWN
                     ):
                         with self.lock:
-                            self.mark_failed(
-                                index
-                            )
+                            self.mark_failed(index)
 
-            time.sleep(
-                READ_INTERVAL_S
-            )
+            time.sleep(READ_INTERVAL_S)
 
-    def snapshot(
-        self,
-    ) -> list[dict]:
+    def snapshot(self) -> list[dict]:
         with self.lock:
             return [
                 {
-                    "position":
-                        index + 1,
-                    "distanceMm":
-                        self.distances[index],
-                    "occupancyStatus":
-                        self.states[index],
+                    "position": index + 1,
+                    "distanceMm": self.distances[index],
+                    "occupancyStatus": self.states[index],
                 }
                 for index in range(4)
             ]
 
 
 class DisplayController:
-    def __init__(
-        self,
-    ) -> None:
+    def __init__(self) -> None:
         self.outputs = {}
 
         for name, pin in SEGMENT_PINS.items():
-            output = digitalio.DigitalInOut(
-                pin
-            )
-
-            output.switch_to_output(
-                value=False
-            )
-
+            output = digitalio.DigitalInOut(pin)
+            output.switch_to_output(value=False)
             self.outputs[name] = output
 
         self.lock = threading.Lock()
 
-    def show(
-        self,
-        value: int,
-    ) -> None:
+    def show(self, value: int) -> None:
         if value not in DIGITS:
             raise ValueError(
                 "Displej podržava samo cifre 0-9."
@@ -645,40 +525,138 @@ class DisplayController:
             time.sleep(0.01)
 
             for name, output in self.outputs.items():
-                output.value = (
-                    name in segments
-                )
+                output.value = name in segments
 
         logger.info(
             "Displej prikazuje %d, segmenti: %s",
             value,
-            sorted(
-                segments
-            ),
+            sorted(segments),
         )
+
+
+class AccessIndicatorController:
+    def __init__(self) -> None:
+        self.green = digitalio.DigitalInOut(
+            GREEN_LED_PIN
+        )
+
+        self.red = digitalio.DigitalInOut(
+            RED_LED_PIN
+        )
+
+        self.green.switch_to_output(value=False)
+        self.red.switch_to_output(value=False)
+
+        self.lock = threading.Lock()
+        self.generation = 0
+
+    def show_result(self, granted: bool) -> None:
+        with self.lock:
+            self.generation += 1
+            generation = self.generation
+
+            self.green.value = False
+            self.red.value = False
+
+            if granted:
+                self.green.value = True
+                logger.info(
+                    "Pristup ODOBREN - zelena LED."
+                )
+            else:
+                self.red.value = True
+                logger.info(
+                    "Pristup ODBIJEN - crvena LED."
+                )
+
+        timer = threading.Timer(
+            LED_DURATION_S,
+            self._turn_off,
+            args=(generation,),
+        )
+
+        timer.daemon = True
+        timer.start()
+
+    def _turn_off(
+        self,
+        generation: int,
+    ) -> None:
+        with self.lock:
+            if generation != self.generation:
+                return
+
+            self.green.value = False
+            self.red.value = False
+
+
+class NfcController:
+    def __init__(self) -> None:
+        self.lock = threading.Lock()
+
+        self.spi = board.SPI()
+
+        self.cs = digitalio.DigitalInOut(
+            PN532_CS_PIN
+        )
+
+        self.pn532 = PN532_SPI(
+            self.spi,
+            self.cs,
+            debug=False,
+        )
+
+        ic, ver, rev, support = (
+            self.pn532.firmware_version
+        )
+
+        logger.info(
+            "PN532 pronađen. Firmware %d.%d",
+            ver,
+            rev,
+        )
+
+        self.pn532.SAM_configuration()
+
+    def read_uid(
+        self,
+    ) -> str | None:
+        with self.lock:
+            uid = self.pn532.read_passive_target(
+                timeout=0.2
+            )
+
+        if uid is None:
+            return None
+
+        uid_text = "".join(
+            f"{byte:02X}"
+            for byte in uid
+        )
+
+        logger.info(
+            "PN532 kartica: UID=%s",
+            uid_text,
+        )
+
+        return uid_text
 
 
 sensor_manager: SensorManager
 display_controller: DisplayController
+access_indicator: AccessIndicatorController
+nfc_controller: NfcController
 
 
-class RequestHandler(
-    BaseHTTPRequestHandler
-):
+class RequestHandler(BaseHTTPRequestHandler):
     def send_json(
         self,
         status: int,
         payload: dict,
     ) -> None:
-        data = json.dumps(
-            payload
-        ).encode(
-            "utf-8"
-        )
+        data = json.dumps(payload).encode("utf-8")
 
-        self.send_response(
-            status
-        )
+        self.send_response(status)
 
         self.send_header(
             "Content-Type",
@@ -687,26 +665,36 @@ class RequestHandler(
 
         self.send_header(
             "Content-Length",
-            str(
-                len(data)
-            ),
+            str(len(data)),
         )
 
         self.end_headers()
 
-        self.wfile.write(
-            data
+        self.wfile.write(data)
+
+    def read_json(self) -> dict:
+        content_length = int(
+            self.headers.get(
+                "Content-Length",
+                "0",
+            )
         )
 
-    def do_GET(
-        self,
-    ) -> None:
+        body = self.rfile.read(content_length)
+
+        if not body:
+            return {}
+
+        return json.loads(
+            body.decode("utf-8")
+        )
+
+    def do_GET(self) -> None:
         if self.path == "/health":
             self.send_json(
                 200,
                 {
-                    "status":
-                        "ok",
+                    "status": "ok",
                 },
             )
             return
@@ -721,69 +709,103 @@ class RequestHandler(
             )
             return
 
+        if self.path == "/nfc":
+            try:
+                uid = nfc_controller.read_uid()
+
+                self.send_json(
+                    200,
+                    {
+                        "uid": uid,
+                    },
+                )
+
+            except Exception as exc:
+                logger.exception(
+                    "Greška prilikom čitanja PN532."
+                )
+
+                self.send_json(
+                    500,
+                    {
+                        "error": str(exc),
+                    },
+                )
+
+            return
+
         self.send_json(
             404,
             {
-                "error":
-                    "Not found",
+                "error": "Not found",
             },
         )
 
-    def do_POST(
-        self,
-    ) -> None:
-        if self.path != "/display":
+    def do_POST(self) -> None:
+        try:
+            if self.path == "/display":
+                payload = self.read_json()
+
+                free_spaces = int(
+                    payload["freeSpaces"]
+                )
+
+                display_controller.show(
+                    free_spaces
+                )
+
+                self.send_json(
+                    200,
+                    {
+                        "freeSpaces":
+                            free_spaces,
+                    },
+                )
+                return
+
+            if self.path == "/access-indicator":
+                payload = self.read_json()
+
+                granted = payload.get(
+                    "granted"
+                )
+
+                if not isinstance(
+                    granted,
+                    bool,
+                ):
+                    raise ValueError(
+                        "'granted' mora biti boolean."
+                    )
+
+                access_indicator.show_result(
+                    granted
+                )
+
+                self.send_json(
+                    200,
+                    {
+                        "granted": granted,
+                    },
+                )
+                return
+
             self.send_json(
                 404,
                 {
-                    "error":
-                        "Not found",
-                },
-            )
-            return
-
-        try:
-            content_length = int(
-                self.headers.get(
-                    "Content-Length",
-                    "0",
-                )
-            )
-
-            body = self.rfile.read(
-                content_length
-            )
-
-            payload = json.loads(
-                body.decode(
-                    "utf-8"
-                )
-            )
-
-            free_spaces = int(
-                payload[
-                    "freeSpaces"
-                ]
-            )
-
-            display_controller.show(
-                free_spaces
-            )
-
-            self.send_json(
-                200,
-                {
-                    "freeSpaces":
-                        free_spaces,
+                    "error": "Not found",
                 },
             )
 
         except Exception as exc:
+            logger.exception(
+                "Greška prilikom POST zahteva."
+            )
+
             self.send_json(
                 400,
                 {
-                    "error":
-                        str(exc),
+                    "error": str(exc),
                 },
             )
 
@@ -802,9 +824,13 @@ class RequestHandler(
 def main() -> None:
     global sensor_manager
     global display_controller
+    global access_indicator
+    global nfc_controller
 
     sensor_manager = SensorManager()
     display_controller = DisplayController()
+    access_indicator = AccessIndicatorController()
+    nfc_controller = NfcController()
 
     server = ThreadingHTTPServer(
         (
