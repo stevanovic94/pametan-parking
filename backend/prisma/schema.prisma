@@ -22,6 +22,7 @@ model User {
   firstName    String   @db.VarChar(50)
   lastName     String   @db.VarChar(50)
   email        String   @unique @db.VarChar(255)
+  rfidUid      String?  @unique @db.VarChar(32)
   passwordHash String   @db.VarChar(255)
   role         Role     @default(USER)
   isActive     Boolean  @default(true)

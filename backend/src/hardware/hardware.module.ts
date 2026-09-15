@@ -89,6 +89,7 @@ import { RaspberryPiHardwareBridgeClient } from "./raspberry-pi/raspberry-pi-har
   exports: [
     ParkingHardwareGateway,
     ParkingSensorGateway,
+    RaspberryPiHardwareBridgeClient,
 
     SimulatedParkingHardwareGateway,
     SimulatedParkingSensorGateway,

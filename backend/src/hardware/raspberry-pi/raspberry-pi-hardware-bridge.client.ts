@@ -59,6 +59,44 @@ export class RaspberryPiHardwareBridgeClient {
     });
   }
 
+  async readNfcUid(): Promise<string | null> {
+    const response = await this.request("/nfc");
+
+    const payload = (await response.json()) as {
+      uid?: unknown;
+    };
+
+    if (payload.uid === null) {
+      return null;
+    }
+
+    if (typeof payload.uid !== "string") {
+      throw new Error("Hardware bridge nije vratio ispravan NFC UID.");
+    }
+
+    const uid = payload.uid.trim().toUpperCase();
+
+    if (uid.length === 0 || uid.length % 2 !== 0 || !/^[0-9A-F]+$/.test(uid)) {
+      throw new Error("Hardware bridge je vratio neispravan NFC UID.");
+    }
+
+    return uid;
+  }
+
+  async showAccessResult(granted: boolean): Promise<void> {
+    await this.request("/access-indicator", {
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json",
+      },
+
+      body: JSON.stringify({
+        granted,
+      }),
+    });
+  }
+
   private async request(path: string, init?: RequestInit): Promise<Response> {
     const controller = new AbortController();
 

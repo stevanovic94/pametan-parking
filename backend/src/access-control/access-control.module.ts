@@ -1,5 +1,7 @@
 import { Module } from "@nestjs/common";
 
+import { ConfigModule } from "@nestjs/config";
+
 import { HardwareModule } from "../hardware/hardware.module.js";
 
 import { PrismaModule } from "../prisma/prisma.module.js";
@@ -10,13 +12,15 @@ import { AccessControlController } from "./access-control.controller.js";
 
 import { AccessControlService } from "./access-control.service.js";
 
+import { RfidAccessPollingService } from "./rfid-access-polling.service.js";
+
 @Module({
-	imports: [PrismaModule, SecurityModule, HardwareModule],
+  imports: [ConfigModule, PrismaModule, SecurityModule, HardwareModule],
 
-	controllers: [AccessControlController],
+  controllers: [AccessControlController],
 
-	providers: [AccessControlService],
+  providers: [AccessControlService, RfidAccessPollingService],
 
-	exports: [AccessControlService],
+  exports: [AccessControlService],
 })
 export class AccessControlModule {}
